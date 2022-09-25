@@ -1,0 +1,11 @@
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  flow:
+    uses: Drakorgaur/cicd_base/.github/workflows/pull_request.yml@master
+    with:
+      src: ./src
+      unit_tests: true
+      makefile: ./Makefile

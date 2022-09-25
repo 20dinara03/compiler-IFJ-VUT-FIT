@@ -1,0 +1,12 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  flow:
+    uses: Drakorgaur/cicd_base/.github/workflows/merge_master.yml@master
+    with:
+      makefile: ./Makefile
+      binary: 'compile'
