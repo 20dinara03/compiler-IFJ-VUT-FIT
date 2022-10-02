@@ -1,26 +1,52 @@
 #include "queue.h"
 
 /**
- * @brief removes an item from the head. 
+ * @brief Queue clean up function
  *
- * @param queue current queue
- * @param func function clean up for given data
+ * @param queue pointer to queue_t
+ * @param free_data clean up function for given data
  */
-#define dequeue(queue, func)               \
-    do                                     \
-    {                                      \
-        func(((void *)queue->head->data)); \
-        void *temp_head = queue->head;     \
-        queue->head = queue->head->next;   \
-        queue->length--;                   \
-        free(temp_head);                   \
+#define free_queue(queue, free_data)   \
+    do                                 \
+    {                                  \
+        while (queue->head)            \
+            dequeue(queue, free_data); \
+        free(queue);                   \
     } while (0)
 
 /**
- * @brief Inserts an item at the end of the queue
+ * @brief Token clean up function
  *
- * @param queue current queue
- * @param data 
+ * @param node pointer to node_t
+ * @param free_data clean up function for given data
+ */
+#define free_node(node, free_data) \
+    do                             \
+    {                              \
+        free_data(node->data);     \
+        free(node);                \
+    } while (0)
+
+/**
+ * @brief removes an item from the head.
+ *
+ * @param queue pointer to queue_t
+ * @param free_data clean up function for given data
+ */
+#define dequeue(queue, free_data)          \
+    do                                     \
+    {                                      \
+        node_t *next = queue->head->next;  \
+        free_node(queue->head, free_data); \
+        queue->head = next;                \
+        queue->length--;                   \
+    } while (0)
+
+/**
+ * @brief Inserts data of any type at the end of the queue
+ *
+ * @param queue pointer to queue_t
+ * @param data any pointer of any type to the data
  */
 #define enqueue(queue, data)                             \
     do                                                   \
@@ -40,9 +66,9 @@
     } while (0)
 
 /**
- * @brief Contructor for the queue
- * 
- * @return queue_t* 
+ * @brief Contructor for the queue_t
+ *
+ * @return new pointer to queue_t
  */
 queue_t *init_queue()
 {
@@ -54,9 +80,9 @@ queue_t *init_queue()
 }
 
 /**
- * @brief Contructor for the node
- * 
- * @return queue_t* 
+ * @brief Contructor for the node_t
+ *
+ * @return new pointer to node_t
  */
 node_t *init_node(void *data)
 {

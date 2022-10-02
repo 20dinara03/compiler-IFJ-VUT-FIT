@@ -12,19 +12,21 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "COMMENT"};
 
 /**
- * @brief Token clean up functio
+ * @brief Token clean up function
+ * 
+ * @param token pointer to token_t
  */
 #define free_token(token)               \
     do                                  \
     {                                   \
         free(((token_t *)token)->text); \
-        free((token_t *)token);         \
+        free(token);                    \
     } while (0)
 
 /**
  * @brief Constructor for token_t
  *
- * @param token target token
+ * @return new pointer to token_t
  */
 token_t *init_token()
 {
@@ -41,8 +43,8 @@ token_t *init_token()
 /**
  * @brief Appends symbol at the end of the token text
  *
- * @param token target token
- * @param ch input symbol
+ * @param token pointer to a target token_t
+ * @param ch input char
  */
 void push_char_in_token(token_t *token, char ch)
 {
@@ -64,8 +66,8 @@ void push_char_in_token(token_t *token, char ch)
 /**
  * @brief Inserts into the target queue and resets given token
  *
- * @param queue target queue
- * @param token current token
+ * @param queue pointer to a target queue_t
+ * @param token pointer* to a given token_t
  */
 void push_token_in_queue(queue_t *queue, token_t **token)
 {
@@ -74,9 +76,9 @@ void push_token_in_queue(queue_t *queue, token_t **token)
 }
 
 /**
- * @brief Prints token in console in (type : value) format
- * 
- * @param token 
+ * @brief Prints token in console, in (type : value) format
+ *
+ * @param token pointer to token_t
  */
 void print_token(token_t *token)
 {
