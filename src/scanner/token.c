@@ -9,7 +9,8 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "INT_LITERAL",
     "DOUBLE_LITERAL",
     "WHITE_SPACE",
-    "COMMENT"};
+    "COMMENT"
+    };
 
 /**
  * @brief Token clean up function
@@ -76,6 +77,9 @@ void push_token_in_queue(queue_t *queue, token_t **token)
 }
 
 /**
+ * 
+ * @todo delete debug
+ * 
  * @brief Prints token in console, in (type : value) format
  *
  * @param token pointer to token_t

@@ -28,6 +28,9 @@
     } while (0)
 
 /**
+ * 
+ * @todo Add error handler
+ * 
  * @brief removes an item from the head.
  *
  * @param queue pointer to queue_t
@@ -43,6 +46,9 @@
     } while (0)
 
 /**
+ * 
+ * @todo Add error handler instead of break
+ * 
  * @brief Inserts data of any type at the end of the queue
  *
  * @param queue pointer to queue_t
