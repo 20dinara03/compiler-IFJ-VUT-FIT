@@ -14,6 +14,9 @@ typedef enum
     INT_LITERAL,
     DOUBLE_LITERAL,
     WHITE_SPACE,
+    COMMENT,
+    POSSIBLE_KEYWORD,
+    ID_NAME
 } types_t;
 
 /* token struct */
