@@ -9,7 +9,9 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "INT_LITERAL",
     "DOUBLE_LITERAL",
     "WHITE_SPACE",
-    "COMMENT"
+    "COMMENT",
+    "POSSIBLE_KEYWORD",
+    "ID_NAME"
     };
 
 /**
