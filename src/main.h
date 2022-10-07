@@ -4,4 +4,10 @@
 
 #include "./common/memo.c"
 
+#define FILEMODE "r"
+
 typedef char *string;
+
+typedef struct{
+   queue_t *queue;
+} program_t;
