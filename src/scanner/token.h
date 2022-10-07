@@ -1,3 +1,9 @@
+#include "../common/queue.h"
+
+
+#ifndef TOKEN
+#define TOKEN
+
 /* token types constants */
 typedef enum
 {
@@ -19,8 +25,10 @@ typedef struct
     size_t offsetY;
 } token_t;
 
-/* prototypes */
+// /* prototypes */
 token_t *init_token();
-void print_token(token_t *token);
-void push_char_in_token(token_t *token, char ch);
-void push_token_in_queue(queue_t *queue, token_t **token);
+void print_token(token_t *);
+void push_char_in_token(token_t *, char );
+void push_token_in_queue(queue_t *, token_t **);
+
+#endif

@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "queue.h": "c",
+        "token.h": "c",
+        "main.h": "c",
+        "array": "cpp",
+        "chrono": "cpp",
+        "any": "cpp",
+        "string_view": "cpp",
+        "functional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "queue.c": "cpp",
+        "*.clang-format": "c",
+        "token.c": "cpp"
+    }
+}
