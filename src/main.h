@@ -11,7 +11,4 @@
 
 typedef char *string;
 
-typedef struct{
-   queue_t *queue;
-} program_t;
 #endif
