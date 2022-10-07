@@ -7,7 +7,7 @@
  *      Dinara Garipova     | xgarip00
  *      Kateryna Zdebska    | xzdebs00
  */
-#include "main.h"
+#include "./main.h"
 #include "./common/errors.c"
 
 
