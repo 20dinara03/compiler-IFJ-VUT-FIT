@@ -7,6 +7,8 @@
 
 #include "./common/memo.h"
 
+#define FILEMODE "r"
+
 typedef char *string;
 
 #endif /* MAIN */

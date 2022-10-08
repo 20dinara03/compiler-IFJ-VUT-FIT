@@ -20,18 +20,6 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     };
 
 /**
- * @brief Token clean up function
- * 
- * @param token pointer to token_t
- */
-#define free_token(token)               \
-    do                                  \
-    {                                   \
-        free(((token_t *)token)->text); \
-        free(token);                    \
-    } while (0)
-
-/**
  * @brief Constructor for token_t
  *
  * @return new pointer to token_t
