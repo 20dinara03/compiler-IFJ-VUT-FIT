@@ -64,11 +64,10 @@ void Scan(void)
 
      case '0'...'9':
 
-     /*If it's not in quotes or a comment or an identifire then we create a new token for the INT literal and write it there*/
+     /*If it's not in quotes or a comment  then we create a new token for the INT literal and write it there*/
 
        if (token->type != STRING_LITERAL &&
-            token->type != COMMENT &&
-            token->type != ID_NAME)
+            token->type != COMMENT)
        {
          push_char_in_token(&token->text,newChar);
          token->type = INT_LITERAL;
@@ -157,6 +156,53 @@ void Scan(void)
           push_char_in_token(&token->text, newChar);
         }
       break;
+
+      /*Possible reading variations for key simbol '='*/
+
+      case '=':
+
+       /*If it's not in quotes or a comment or an operator '!' or '=' or '>', then we create a new token for the operator  and write it there*/
+
+       if (token->type != STRING_LITERAL &&
+            token->type != COMMENT &&
+            token->type != OPERATOR)
+        {
+          push_token_in_queue(queue,&token);
+          token->type = OPERATOR;
+          push_char_in_token(&token->text, newChar);
+        }
+
+        /*Otherwise, continue writing to the existing token*/
+
+        else
+        {
+          push_char_in_token(&token->text, newChar);
+        }
+      break;
+
+      /*Possible reading variations for key simbol '!'*/
+
+      case '!':
+
+        /*If it's not in quotes or a comment, then we create a new token for the operator  and write it there*/
+
+
+        if (token->type != STRING_LITERAL &&
+            token->type != COMMENT)
+        {
+          push_token_in_queue(queue,&token);
+          token->type = OPERATOR;
+          push_char_in_token(&token->text, newChar);
+        }
+
+        /*Otherwise, continue writing to the existing token*/
+
+        else 
+        {
+          push_char_in_token(&token->text, newChar);
+        }
+      break;
+
     }
   }
   node_t*node = queue->head;
