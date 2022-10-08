@@ -14,7 +14,7 @@ test:
 
 compile:
 	mkdir -p $(BIN_D)
-	$(CC) $(CFLAGS) $(wildcard $(SRC_D)/*.c) -o $(BIN_D)/$@
+	$(CC) $(CFLAGS) $(shell find ./src -name '*.c') -o $(BIN_D)/$@
 
 pack:
 	tar -czvf $(TAR_NAME).tar.gz $(SRC_D) $(BIN_D) README.md
@@ -22,3 +22,4 @@ pack:
 clean:
 	rm $(PROJ_D)/$(BIN_D)/*
 	rm -f $(PROJ_D)/$(TAR_NAME).tar.gz
+	$(TAR_NAME).tar.gz

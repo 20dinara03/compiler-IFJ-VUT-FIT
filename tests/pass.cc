@@ -1,5 +1,11 @@
 #include <gtest/gtest.h>
 
+extern "C"
+{
+#include "../src/common/queue.c"
+#include "../src/scanner/token.c"
+}
+
 // Demonstrate some basic assertions.
 TEST(HelloTest, BasicAssertions) {
     // Expect two strings not to be equal.
