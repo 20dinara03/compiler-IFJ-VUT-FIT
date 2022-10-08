@@ -1,7 +1,7 @@
-#include "../main.h"
-
 #ifndef QUEUE
 #define QUEUE
+
+#include "../main.h"
 
 typedef struct node_t node_t;
 
@@ -95,4 +95,4 @@ typedef struct
 node_t *init_node(void *data);
 queue_t *init_queue();
 
-#endif
+#endif /* QUEUE */

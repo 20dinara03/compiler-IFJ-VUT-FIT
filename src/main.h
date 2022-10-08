@@ -11,4 +11,4 @@
 
 typedef char *string;
 
-#endif
+#endif /* MAIN */
