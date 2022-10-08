@@ -44,13 +44,21 @@ void Scan(void)
      
      /*If it's not in quotes or a comment, then we create a new token for the operator and write it there*/
        
-       if (token->type != STRING_LITERAL && token->type != COMMENT)
+       if (token->type != STRING_LITERAL && 
+           token->type != COMMENT &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
         {
          push_token_in_queue(queue, &token);
          token->type = OPERATOR;
          push_char_in_token(&token, newChar);
          push_token_in_queue(queue, &token);
         } 
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
+        }
 
         /*Otherwise, continue writing to the existing token*/
         
@@ -67,12 +75,19 @@ void Scan(void)
      /*If it's not in quotes or a comment  then we create a new token for the INT literal and write it there*/
 
        if (token->type != STRING_LITERAL &&
-            token->type != COMMENT)
+            token->type != COMMENT &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
        {
          push_char_in_token(&token->text,newChar);
          token->type = INT_LITERAL;
        } 
-
+       else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
+        }
+       
        /*Otherwise, continue writing to the existing token*/
 
        else
@@ -88,11 +103,18 @@ void Scan(void)
        /*If it's not in quotes or a comment, then we create a new token for the operator or keyword '<?php' and write it there*/
 
         if (token->type != STRING_LITERAL &&
-            token->type != COMMENT)
+            token->type != COMMENT &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
         {
           push_token_in_queue(queue,&token);
           token->type = POSSIBLE_KEYWORD;
           push_char_in_token(&token->text, newChar);
+        }
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
         }
 
         /*Otherwise, continue writing to the existing token*/
@@ -111,11 +133,18 @@ void Scan(void)
 
         if (token->type != STRING_LITERAL &&
             token->type != COMMENT &&
-            token->type != KEYWORD)
+            token->type != KEYWORD &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
         {
           push_token_in_queue(queue,&token);
           token->type = OPERATOR;
           push_char_in_token(&token->text, newChar);
+        }
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
         }
 
         /*Otherwise if type of token is keyword, so write the operand to the token and save token with '?>' keyword */
@@ -142,11 +171,18 @@ void Scan(void)
 
         if (token->type != STRING_LITERAL &&
             token->type != COMMENT &&
-            token->type != POSSIBLE_KEYWORD)
+            token->type != POSSIBLE_KEYWORD &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
         {
           push_token_in_queue(queue,&token);
           token->type = KEYWORD;
           push_char_in_token(&token->text, newChar);
+        }
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
         }
 
         /*Otherwise, continue writing to the existing token*/
@@ -165,11 +201,18 @@ void Scan(void)
 
        if (token->type != STRING_LITERAL &&
             token->type != COMMENT &&
-            token->type != OPERATOR)
+            token->type != OPERATOR &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
         {
           push_token_in_queue(queue,&token);
           token->type = OPERATOR;
           push_char_in_token(&token->text, newChar);
+        }
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
         }
 
         /*Otherwise, continue writing to the existing token*/
@@ -188,11 +231,18 @@ void Scan(void)
 
 
         if (token->type != STRING_LITERAL &&
-            token->type != COMMENT)
+            token->type != COMMENT &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
         {
           push_token_in_queue(queue,&token);
           token->type = OPERATOR;
           push_char_in_token(&token->text, newChar);
+        }
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
         }
 
         /*Otherwise, continue writing to the existing token*/
@@ -203,6 +253,153 @@ void Scan(void)
         }
       break;
 
+      /*Possible reading variations for key simbol '|'*/
+
+      case '|':
+
+      /*If it's not in quotes or a comment or a token type is not possible OR, then we create a new token for the operator  and write it there*/
+
+      if (token->type != STRING_LITERAL &&
+            token->type != COMMENT &&
+            token->type != POSSIBLE_OR &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
+        {
+          push_token_in_queue(queue,&token);
+          token->type = POSSIBLE_OR;
+          push_char_in_token(&token->text, newChar);
+        }
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
+        }
+
+        /*Otherwise if type of token is possible or, so write the operand to the token and save token with '||' operator */
+
+        else if (token->type == POSSIBLE_OR)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = OPERATOR;
+          push_token_in_queue(queue,&token);
+        }
+
+        /*Otherwise, continue writing to the existing token*/
+
+        else 
+        {
+          push_char_in_token(&token->text, newChar);
+        }
+      break; 
+      
+      /*Possible reading variations for key simbol '&'*/
+
+      case '&':
+
+      /*If it's not in quotes or a comment or a token type is not possible AND, then we create a new token for the operator  and write it there*/
+
+      if (token->type != STRING_LITERAL &&
+            token->type != COMMENT &&
+            token->type != POSSIBLE_AND &&
+           token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
+        {
+          push_token_in_queue(queue,&token);
+          token->type = POSSIBLE_AND;
+          push_char_in_token(&token->text, newChar);
+        }
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
+        }
+
+        /*Otherwise if type of token is possible and, so write the operand to the token and save token with '||' operator */
+
+        else if (token->type == POSSIBLE_AND)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = OPERATOR;
+          push_token_in_queue(queue,&token);
+        }
+
+        /*Otherwise, continue writing to the existing token*/
+
+        else 
+        {
+          push_char_in_token(&token->text, newChar);
+        }
+      break; 
+
+      /*Possible reading variations for key simbol '/'*/
+
+      case '/':
+
+      /*If it's not in quotes or a comment or a token type is not possible comment, then we create a new token for the operator  and write it there*/
+
+      if (token->type != STRING_LITERAL &&
+            token->type != COMMENT &&
+            token->type != POSSIBLE_COMMENT &&
+            token->type != POSSIBLE_COMMENT_END &&
+           token->type != COMMENT_LINE)
+        {
+          push_token_in_queue(queue,&token);
+          token->type = POSSIBLE_COMMENT;
+          push_char_in_token(&token->text, newChar);
+        }
+
+        /*If token type is possible comment then save operand to the token and push the type comment (there is comment starts)*/
+
+        else if (token->type == POSSIBLE_COMMENT)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT_LINE;
+        }
+
+        /*If it is can be the end of the comment (befor was the operand '*'), so save the token with type comment */
+
+        else if (token->type == POSSIBLE_COMMENT_END)
+        {
+          push_char_in_token(&token->text, newChar);
+          token->type = COMMENT;
+          push_token_in_queue(queue,&token);
+        }
+
+        /*Otherwise, continue writing to the existing token*/
+
+        else
+        {
+          push_char_in_token(&token->text, newChar);
+        }
+      break;
+
+       /*Possible reading variations for key simbol '*' */
+      
+      case '*':
+        if (token->type != STRING_LITERAL &&
+            token->type != COMMENT &&
+            token->type != POSSIBLE_COMMENT)
+        {
+          push_token_in_queue(queue, &token);
+          token->type = OPERATOR;
+          push_char_in_token(&token, newChar);
+          push_token_in_queue(queue, &token);
+        }
+        else if (token->type == POSSIBLE_COMMENT)
+        {
+          push_char_in_token(&token, newChar);
+          token->type = COMMENT;
+        }
+        else if (token->type == COMMENT)
+        {
+         push_char_in_token(&token, newChar);
+         token->type = POSSIBLE_COMMENT_END;
+        }
+        else 
+        {
+          push_char_in_token(&token->text, newChar);
+        }
+      break;
     }
   }
   node_t*node = queue->head;
@@ -219,6 +416,7 @@ void Scan(void)
 
     return 0;
 }
+
 
 
  
