@@ -1,4 +1,5 @@
-#include "token.h"
+#include "./token.h"
+#include "../common/queue.h"
 
 /* token types in string representation */
 const char *TOKEN_TYPE_TO_STRING[] = {
@@ -40,7 +41,7 @@ token_t *init_token()
 
     token_t *token = NULL;
 
-    memo_allocate(token, sizeof(token_t));
+    memo_allocate(token, token_t, 1);
 
     token->type = WHITE_SPACE;
 
@@ -57,14 +58,14 @@ void push_char_in_token(token_t *token, char ch)
 {
     if (token->text == NULL)
     {
-        memo_allocate(token->text, sizeof(char) * 2);
+        memo_allocate(token->text, char, 2);
         token->text[0] = ch;
         token->text[1] = '\0';
     }
     else
     {
         const size_t length = strlen(token->text);
-        memo_reallocate(token->text, length + 2);
+        memo_reallocate(token->text, char, length + 2);
         token->text[length] = ch;
         token->text[length + 1] = '\0';
     }
@@ -83,9 +84,9 @@ void push_token_in_queue(queue_t *queue, token_t **token)
 }
 
 /**
- * 
+ *
  * @todo delete debug
- * 
+ *
  * @brief Prints token in console, in (type : value) format
  *
  * @param token pointer to token_t
