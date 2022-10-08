@@ -1,5 +1,4 @@
-#include "./token.h"
-#include "../common/queue.h"
+#include "token.h"
 
 /* token types in string representation */
 const char *TOKEN_TYPE_TO_STRING[] = {
@@ -16,7 +15,8 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "POSSIBLE_AND",
     "POSSIBLE_COMMENT",
     "POSSIBLE_COMMENT_END",
-    "COMMENT_LINE"
+    "COMMENT_LINE",
+    "CONTROL_CHARACTER"
     };
 
 /**

@@ -8,11 +8,12 @@
  *      Kateryna Zdebska    | xzdebs00
  */
 #include "./main.h"
-#include "./common/errors.c"
+#include "./common/error.h"
+#include "./scanner/realscanner.h"
 
 
 int main(int argc, char *argv[])
-{
+{ 
     if (argc != 2)
     {
         fprintf(stderr, "Wrong number of arguments\n");
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    printf("%s\n", argv[1]);
+    Scan(fp);
 
     return 0;
 }

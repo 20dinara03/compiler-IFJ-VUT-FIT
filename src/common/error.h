@@ -1,4 +1,5 @@
-#include "queue.c"
+#include "queue.h"
+#include "../scanner/token.h"
 
 enum ERRORS
 {

@@ -1,6 +1,3 @@
-#include "../main.h"
-#include "queue.h"
-#include "../scanner/token.c"
 #include "error.h"
 
 program_t program;

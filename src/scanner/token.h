@@ -32,7 +32,8 @@ typedef enum
     POSSIBLE_AND,
     POSSIBLE_COMMENT,
     POSSIBLE_COMMENT_END,
-    COMMENT_LINE
+    COMMENT_LINE,
+    CONTROL_CHARACTER
 } types_t;
 
 /* token struct */

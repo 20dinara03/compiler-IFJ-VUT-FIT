@@ -1,4 +1,4 @@
-#include "./queue.h"
+#include "queue.h"
 
 /**
  * @brief Contructor for the queue_t

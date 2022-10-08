@@ -7,7 +7,7 @@ $a = readi();
 if ($a === null) {
 write("Faktorial nelze spocitat\n");
 } else {}
-if ($a < 0) {
+if ($a <= 0) {
 write("Faktorial nelze spocitat\n");
 } else {
 $vysl = 1;
