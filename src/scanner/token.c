@@ -11,7 +11,11 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "WHITE_SPACE",
     "COMMENT",
     "POSSIBLE_KEYWORD",
-    "ID_NAME"
+    "POSSIBLE_OR",
+    "POSSIBLE_AND",
+    "POSSIBLE_COMMENT",
+    "POSSIBLE_COMMENT_END",
+    "COMMENT_LINE"
     };
 
 /**
