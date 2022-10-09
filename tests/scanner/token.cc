@@ -10,11 +10,13 @@ TEST(Token, Init)
 {
     token_t *token = init_token();
 
-    EXPECT_TRUE(token->type == WHITE_SPACE)<< "Expected values are not equal";
+    token->text = nullptr;
+
+    EXPECT_TRUE(token->type == WHITE_SPACE) << "Expected values are not equal";
 
     free_token(token);
 
-    EXPECT_EQ(token,nullptr) << "free_token was unable to free token with length " << 0;
+    EXPECT_EQ(token, nullptr) << "free_token was unable to free token with length " << 0;
 }
 
 TEST(Token, Insert_Easy)
@@ -31,7 +33,7 @@ TEST(Token, Insert_Easy)
 
     free_token(token);
 
-    EXPECT_EQ(token,nullptr) << "free_token was unable to free token with length " << 3;
+    EXPECT_EQ(token, nullptr) << "free_token was unable to free token with length " << 3;
 }
 
 TEST(Token, Insert_Hard)
@@ -53,5 +55,5 @@ TEST(Token, Insert_Hard)
 
     free_token(token);
 
-    EXPECT_EQ(token,nullptr) << "free_token was unable to free token with length " << MAX_SIZE;
+    EXPECT_EQ(token, nullptr) << "free_token was unable to free token with length " << MAX_SIZE;
 }

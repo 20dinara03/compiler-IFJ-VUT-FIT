@@ -11,6 +11,10 @@ TEST(Queue, Init)
     queue_t *queue = init_queue();
 
     EXPECT_TRUE(queue->head == queue->tail && queue->head == nullptr && queue->length == 0);
+
+    free_queue(queue, free_token);
+
+    EXPECT_EQ(queue, nullptr) << "free_queue was unable to free queue ";
 }
 
 TEST(Queue, Enqueue_Easy)
@@ -25,6 +29,10 @@ TEST(Queue, Enqueue_Easy)
     push_token_in_queue(queue, &token);
 
     EXPECT_TRUE(queue->length == 3 && strcmp(((token_t *)queue->head->data)->text, "a") == 0 && strcmp(((token_t *)queue->tail->data)->text, "c") == 0);
+
+    free_queue(queue, free_token);
+
+    EXPECT_EQ(queue, nullptr) << "free_queue was unable to free queue ";
 }
 
 TEST(Queue, Enqueue_Hard)
@@ -45,4 +53,9 @@ TEST(Queue, Enqueue_Hard)
     }
 
     EXPECT_TRUE(queue->length == 1000 && strcmp(((token_t *)queue->head->data)->text, "a") == 0 && strcmp(((token_t *)queue->tail->data)->text, a) == 0);
+
+    free_queue(queue, free_token);
+
+    EXPECT_EQ(queue, nullptr) << "free_queue was unable to free queue ";
+
 }

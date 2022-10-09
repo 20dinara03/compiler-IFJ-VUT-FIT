@@ -17,6 +17,7 @@ typedef struct node_t node_t;
         while (queue->head)            \
             dequeue(queue, free_data); \
         free(queue);                   \
+        queue = NULL;                  \
     } while (0)
 
 /**

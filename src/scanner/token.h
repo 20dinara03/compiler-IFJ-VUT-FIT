@@ -13,7 +13,7 @@
     {                                   \
         free(((token_t *)token)->text); \
         free(token);                    \
-        token = NULL;                    \
+        token = NULL;                   \
     } while (0)
 
 /* token types constants */
