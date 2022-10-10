@@ -31,6 +31,7 @@ void Scan(FILE *file)
         case '{':
         case '}':
         case ';':
+        case '\\':
             /*If it's not in quotes or a comment, then we create a new token for the operator and write it there*/
 
             if (token->type != STRING_LITERAL &&
