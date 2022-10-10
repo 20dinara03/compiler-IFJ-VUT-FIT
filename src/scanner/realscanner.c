@@ -553,8 +553,6 @@ void Scan(FILE *file)
                 token->type != WHITE_SPACE)
             {
                 push_token_in_queue(queue, &token);
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
             }
             else if (token->type == POSSIBLE_COMMENT_END)
             {
