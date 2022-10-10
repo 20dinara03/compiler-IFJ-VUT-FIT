@@ -26,11 +26,8 @@ void Scan(FILE *file)
 
         case '(':
         case ')':
-        case '+':
         case ':':
         case ',':
-        case '-':
-        case '.':
         case '{':
         case '}':
         case ';':
@@ -66,6 +63,73 @@ void Scan(FILE *file)
                 push_char_in_token(token, newChar);
             }
             break;
+        case '+':
+        case '-':
+            if (token->type != STRING_LITERAL &&
+                token->type != COMMENT &&
+                token->type != POSSIBLE_COMMENT_END &&
+                token->type != COMMENT_LINE &&
+                token->type != WHITE_SPACE &&
+                token->type != EXPONENTA)
+            {
+                push_token_in_queue(queue, &token);
+                token->type = OPERATOR;
+                push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                push_char_in_token(token, newChar);
+                token->type = COMMENT;
+            }
+            else if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR;
+                push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
+            }
+
+            /*Otherwise, continue writing to the existing token*/
+
+            else
+            {
+                push_char_in_token(token, newChar);
+            }
+            break;
+        case '.':
+              if (token->type != STRING_LITERAL &&
+                token->type != COMMENT &&
+                token->type != POSSIBLE_COMMENT_END &&
+                token->type != COMMENT_LINE &&
+                token->type != WHITE_SPACE &&
+                token->type != INT_LITERAL)
+              {
+                push_token_in_queue(queue, &token);
+                token->type = OPERATOR;
+                push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                push_char_in_token(token, newChar);
+                token->type = COMMENT;
+            }
+            else if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR;
+                push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
+            }
+            else if (token->type == INT_LITERAL)
+            {
+                push_char_in_token(token, newChar);
+                token->type = DOUBLE_LITERAL;
+            }
+            else
+            {
+                push_char_in_token(token, newChar);
+            }
+        break;
 
             /*Possible reading variations for numbers*/
 
@@ -77,7 +141,10 @@ void Scan(FILE *file)
                 token->type != COMMENT &&
                 token->type != POSSIBLE_COMMENT_END &&
                 token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
+                token->type != WHITE_SPACE &&
+                token->type != INT_LITERAL &&
+                token->type != DOUBLE_LITERAL &&
+                token->type != EXPONENTA)
             {
                 push_token_in_queue(queue, &token);
                 push_char_in_token(token, newChar);
@@ -467,19 +534,25 @@ void Scan(FILE *file)
             }
             break;
         case '\n':
-            if (token->type == COMMENT_LINE)
+        case '\r':
+            if (token->type != COMMENT &&
+                token->type != STRING_LITERAL &&
+                token->type != WHITE_SPACE)
             {
                 push_token_in_queue(queue, &token);
             }
-            break;
+        break;
         case ' ':
         case '\t':
 
             if (token->type != STRING_LITERAL && 
                 token->type != COMMENT &&
                 token->type != COMMENT_LINE &&
-                token->type != POSSIBLE_COMMENT_END)
+                token->type != POSSIBLE_COMMENT_END &&
+                token->type != WHITE_SPACE)
             {
+                push_token_in_queue(queue, &token);
+                push_char_in_token(token, newChar);
                 push_token_in_queue(queue, &token);
             }
             else if (token->type == POSSIBLE_COMMENT_END)
@@ -492,10 +565,39 @@ void Scan(FILE *file)
               push_char_in_token(token, newChar);
             }
         break;
-        case 'A'...'Z':
-        case 'a'...'g':
+        case 'A'...'D':
+        case 'F'...'Z':
+        case 'a'...'d':
+        case 'f'...'g':
         case 'i'...'o':
         case 'q'...'z':
+          if (token->type != STRING_LITERAL &&
+              token->type != COMMENT &&
+              token->type != POSSIBLE_COMMENT_END &&
+              token->type != COMMENT_LINE &&
+              token->type != IDENTIFIER &&
+              token->type != WHITE_SPACE &&
+              token->type != KEYWORD)
+            {
+               push_token_in_queue(queue, &token);
+               push_char_in_token(token, newChar);
+               token->type = IDENTIFIER;
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                push_char_in_token(token, newChar);
+                token->type = COMMENT;
+            }
+            else if (token->type == WHITE_SPACE)
+            {
+                token->type = IDENTIFIER;
+                push_char_in_token(token, newChar);
+            }
+            else
+            {
+              push_char_in_token(token, newChar);
+            }
+        break;
         case '$':
         case '_':
           if (token->type != STRING_LITERAL &&
@@ -524,6 +626,41 @@ void Scan(FILE *file)
               push_char_in_token(token, newChar);
             }
         break;
+        case 'e':
+        case 'E':
+            if (token->type != STRING_LITERAL &&
+              token->type != COMMENT &&
+              token->type != POSSIBLE_COMMENT_END &&
+              token->type != COMMENT_LINE &&
+              token->type != IDENTIFIER &&
+              token->type != WHITE_SPACE &&
+              token->type != DOUBLE_LITERAL &&
+              token->type != KEYWORD)
+            {
+               push_token_in_queue(queue, &token);
+               push_char_in_token(token, newChar);
+               token->type = IDENTIFIER;
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                push_char_in_token(token, newChar);
+                token->type = COMMENT;
+            }
+            else if (token->type == WHITE_SPACE)
+            {
+                token->type = IDENTIFIER;
+                push_char_in_token(token, newChar);
+            }
+            else if (token->type == DOUBLE_LITERAL)
+            {
+                push_char_in_token(token, newChar);
+                token->type = EXPONENTA;
+            }
+            else
+            {
+              push_char_in_token(token, newChar);
+            }
+        break;
         case 'p':
             if (token->type != STRING_LITERAL &&
                 token->type != COMMENT &&
@@ -532,7 +669,8 @@ void Scan(FILE *file)
                 token->type != IDENTIFIER &&
                 token->type != POSSIBLE_KEYWORD &&
                 token->type != KEYWORD_h &&
-                token->type != WHITE_SPACE)
+                token->type != WHITE_SPACE &&
+                token->type != KEYWORD)
             {
                push_token_in_queue(queue, &token);
                push_char_in_token(token, newChar);
@@ -571,7 +709,8 @@ void Scan(FILE *file)
                 token->type != COMMENT_LINE &&
                 token->type != IDENTIFIER &&
                 token->type != KEYWORD_p &&
-                token->type != WHITE_SPACE)
+                token->type != WHITE_SPACE &&
+                token->type != KEYWORD)
             {
                push_token_in_queue(queue, &token);
                push_char_in_token(token, newChar);
@@ -627,7 +766,7 @@ void Scan(FILE *file)
             {
                 push_char_in_token(token, newChar);
             }
-        break;
+        break; 
         }
     }
     node_t *node = queue->head;

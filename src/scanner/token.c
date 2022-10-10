@@ -17,7 +17,8 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "POSSIBLE_COMMENT_END",
     "COMMENT_LINE",
     "KEYWORD_h",
-    "KEYWORD_p"
+    "KEYWORD_p",
+    "EXPONENTA"
     };
 
 /**

@@ -34,7 +34,8 @@ typedef enum
     POSSIBLE_COMMENT_END,
     COMMENT_LINE,
     KEYWORD_h,
-    KEYWORD_p
+    KEYWORD_p,
+    EXPONENTA
 } types_t;
 
 /* token struct */
