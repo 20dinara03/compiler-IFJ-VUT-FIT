@@ -21,9 +21,102 @@ void Scan(FILE *file)
 
         switch (newChar)
         {
+        case '\r':
+        case '\n':
+            if (token->type == COMMENT_LINE)
+            {
+                push_token_in_queue(queue, &token);
+            }
+            break;
+        case '*':
+            if (token->type == COMMENT)
+            {
+                push_char_in_token(token, newChar);
+                token->type = POSSIBLE_COMMENT_END;
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                push_char_in_token(token, newChar);
+            }
+            else if (token->type == POSSIBLE_COMMENT)
+            {
+                push_char_in_token(token, newChar);
+                token->type = COMMENT;
+            }
+            break;
+        case '/':
+            if (token->type == WHITE_SPACE)
+            {
+                push_char_in_token(token, newChar);
+                token->type = POSSIBLE_COMMENT;
+            }
+            else if (token->type == POSSIBLE_COMMENT)
+            {
+                push_char_in_token(token, newChar);
+                token->type = COMMENT_LINE;
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                push_char_in_token(token, newChar);
+                token->type = COMMENT;
+                push_token_in_queue(queue, &token);
+            }
+            break;
+        default: 
+            if (token->type == COMMENT || token->type == COMMENT_LINE)
+            {
+                push_char_in_token(token, newChar);
+            }else if(token->type == POSSIBLE_COMMENT)
+            {
+                token->type = OPERATOR;
+                push_token_in_queue(queue, &token);
+            }
+        }
+
+        if (token->type == COMMENT ||
+            token->type == COMMENT_LINE ||
+            token->type == POSSIBLE_COMMENT_END ||
+            token->type == POSSIBLE_COMMENT)
+        {
+            continue;
+        }
+
+        switch (newChar)
+        {
+        case '"':
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = STRING_LITERAL;
+                push_char_in_token(token, newChar);
+            }
+            else if (token->type == STRING_LITERAL)
+            {
+                push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
+            }
+            else
+            {
+                push_token_in_queue(queue, &token);
+                push_char_in_token(token, newChar);
+                token->type = STRING_LITERAL;
+            }
+            break;
+        default:
+            if(token->type == STRING_LITERAL){
+                push_char_in_token(token, newChar);
+                continue;
+            }
+        }
+
+        // @TODO
+        switch (newChar)
+        {
 
             /*Possible reading variations for operands '+','-', ',' , '.', ':', '(', ')', '{', '}' */
 
+        case '+':
+        case '-':
+        case '*':
         case '(':
         case ')':
         case ':':
@@ -32,90 +125,31 @@ void Scan(FILE *file)
         case '}':
         case ';':
         case '\\':
-            /*If it's not in quotes or a comment, then we create a new token for the operator and write it there*/
 
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
-            {
-                push_token_in_queue(queue, &token);
-                token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
                 push_char_in_token(token, newChar);
                 push_token_in_queue(queue, &token);
             }
-
+            /* @TODO */
+            else if (token->type == EXPONENTA)
+            {
+                push_char_in_token(token, newChar);
+                token->type = DOUBLE_LITERAL;
+            }
             /*Otherwise, continue writing to the existing token*/
-
             else
             {
-                push_char_in_token(token, newChar);
-            }
-            break;
-        case '+':
-        case '-':
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE &&
-                token->type != EXPONENTA)
-            {
                 push_token_in_queue(queue, &token);
                 token->type = OPERATOR;
                 push_char_in_token(token, newChar);
                 push_token_in_queue(queue, &token);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
-            }
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                push_char_in_token(token, newChar);
             }
             break;
         case '.':
-              if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE &&
-                token->type != INT_LITERAL)
-              {
-                push_token_in_queue(queue, &token);
-                token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
                 push_char_in_token(token, newChar);
@@ -128,45 +162,35 @@ void Scan(FILE *file)
             }
             else
             {
+                push_token_in_queue(queue, &token);
+                token->type = OPERATOR;
                 push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
             }
-        break;
+            break;
 
             /*Possible reading variations for numbers*/
-
         case '0' ... '9':
 
             /*If it's not in quotes or a comment  then we create a new token for the INT literal and write it there*/
 
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE &&
-                token->type != INT_LITERAL &&
-                token->type != DOUBLE_LITERAL &&
-                token->type != EXPONENTA)
+            if (token->type == WHITE_SPACE)
+            {
+                push_char_in_token(token, newChar);
+                token->type = INT_LITERAL;
+            }
+            else if (token->type == INT_LITERAL ||
+                     token->type == DOUBLE_LITERAL ||
+                     token->type == EXPONENTA)
+            {
+                push_char_in_token(token, newChar);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
             {
                 push_token_in_queue(queue, &token);
                 push_char_in_token(token, newChar);
                 token->type = INT_LITERAL;
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
-                push_char_in_token(token, newChar);
-                token->type = INT_LITERAL;
-            }
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                push_char_in_token(token, newChar);
             }
             break;
 
@@ -176,32 +200,16 @@ void Scan(FILE *file)
 
             /*If it's not in quotes or a comment, then we create a new token for the operator or keyword '<?php' and write it there*/
 
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = POSSIBLE_KEYWORD;
+                push_char_in_token(token, newChar);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
             {
                 push_token_in_queue(queue, &token);
                 token->type = POSSIBLE_KEYWORD;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
-                token->type = POSSIBLE_KEYWORD;
-                push_char_in_token(token, newChar);
-            }
-
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
                 push_char_in_token(token, newChar);
             }
             break;
@@ -212,23 +220,7 @@ void Scan(FILE *file)
 
             /*If it's not in quotes or a comment or a possible keyword, then we create a new token for the operator  and write it there*/
 
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != KEYWORD &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
-            {
-                push_token_in_queue(queue, &token);
-                token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
                 push_char_in_token(token, newChar);
@@ -246,6 +238,8 @@ void Scan(FILE *file)
 
             else
             {
+                push_token_in_queue(queue, &token);
+                token->type = OPERATOR;
                 push_char_in_token(token, newChar);
             }
             break;
@@ -255,26 +249,13 @@ void Scan(FILE *file)
         case '?':
 
             /*If it's not in quotes or a comment or a possible keyword '<?php', then we create a new token for the keyword '?>'  and write it there*/
-
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_KEYWORD &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
-                push_token_in_queue(queue, &token);
                 token->type = KEYWORD;
                 push_char_in_token(token, newChar);
             }
-            else if (token->type == POSSIBLE_COMMENT_END)
+            else if (token->type == POSSIBLE_KEYWORD)
             {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
-                token->type = KEYWORD;
                 push_char_in_token(token, newChar);
             }
 
@@ -282,6 +263,8 @@ void Scan(FILE *file)
 
             else
             {
+                push_token_in_queue(queue, &token);
+                token->type = POSSIBLE_KEYWORD;
                 push_char_in_token(token, newChar);
             }
             break;
@@ -292,38 +275,27 @@ void Scan(FILE *file)
 
             /*If it's not in quotes or a comment or an operator '!' or '=' or '>', then we create a new token for the operator  and write it there*/
 
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != OPERATOR &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != POSSIBLE_KEYWORD &&
-                token->type != WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
-                push_token_in_queue(queue, &token);
                 token->type = OPERATOR;
                 push_char_in_token(token, newChar);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
             }
             else if (token->type == POSSIBLE_KEYWORD)
             {
-              push_char_in_token(token, newChar);
-              token->type = OPERATOR;
-              push_token_in_queue(queue, &token);
-            }
-            else if (token->type == WHITE_SPACE)
-            {
+                push_char_in_token(token, newChar);
                 token->type = OPERATOR;
+                push_token_in_queue(queue, &token);
+            }
+            else if (token->type == OPERATOR)
+            {
                 push_char_in_token(token, newChar);
             }
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
+                push_token_in_queue(queue, &token);
+                token->type = OPERATOR;
                 push_char_in_token(token, newChar);
             }
             break;
@@ -334,22 +306,7 @@ void Scan(FILE *file)
 
             /*If it's not in quotes or a comment, then we create a new token for the operator  and write it there*/
 
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
-            {
-                push_token_in_queue(queue, &token);
-                token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
                 push_char_in_token(token, newChar);
@@ -359,6 +316,8 @@ void Scan(FILE *file)
 
             else
             {
+                push_token_in_queue(queue, &token);
+                token->type = OPERATOR;
                 push_char_in_token(token, newChar);
             }
             break;
@@ -369,23 +328,7 @@ void Scan(FILE *file)
 
             /*If it's not in quotes or a comment or a token type is not possible OR, then we create a new token for the operator  and write it there*/
 
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_OR &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
-            {
-                push_token_in_queue(queue, &token);
-                token->type = POSSIBLE_OR;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
                 token->type = POSSIBLE_OR;
                 push_char_in_token(token, newChar);
@@ -404,6 +347,8 @@ void Scan(FILE *file)
 
             else
             {
+                push_token_in_queue(queue, &token);
+                token->type = OPERATOR;
                 push_char_in_token(token, newChar);
             }
             break;
@@ -413,29 +358,11 @@ void Scan(FILE *file)
         case '&':
 
             /*If it's not in quotes or a comment or a token type is not possible AND, then we create a new token for the operator  and write it there*/
-
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_AND &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
-            {
-                push_token_in_queue(queue, &token);
-                token->type = POSSIBLE_AND;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
                 token->type = POSSIBLE_AND;
                 push_char_in_token(token, newChar);
             }
-
             /*Otherwise if type of token is possible and, so write the operand to the token and save token with '||' operator */
 
             else if (token->type == POSSIBLE_AND)
@@ -444,210 +371,82 @@ void Scan(FILE *file)
                 token->type = OPERATOR;
                 push_token_in_queue(queue, &token);
             }
-
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
+                push_token_in_queue(queue, &token);
+                token->type = POSSIBLE_AND;
                 push_char_in_token(token, newChar);
             }
             break;
 
             /*Possible reading variations for key simbol '/'*/
-
-        case '/':
-
-            /*If it's not in quotes or a comment or a token type is not possible comment, then we create a new token for the operator  and write it there*/
-
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
-            {
-                push_token_in_queue(queue, &token);
-                token->type = POSSIBLE_COMMENT;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == WHITE_SPACE)
-            {
-                token->type = POSSIBLE_COMMENT;
-                push_char_in_token(token, newChar);
-            }
-
-            /*If token type is possible comment then save operand to the token and push the type comment (there is comment starts)*/
-
-            else if (token->type == POSSIBLE_COMMENT)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT_LINE;
-            }
-
-            /*If it is can be the end of the comment (befor was the operand '*'), so save the token with type comment */
-
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-                push_token_in_queue(queue, &token);
-            }
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                push_char_in_token(token, newChar);
-            }
-            break;
-
-            /*Possible reading variations for key simbol '*' */
-
-        case '*':
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT &&
-                token->type != WHITE_SPACE)
-            {
-                push_token_in_queue(queue, &token);
-                token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
-            }
-            else if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == POSSIBLE_COMMENT)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == COMMENT)
-            {
-                push_char_in_token(token, newChar);
-                token->type = POSSIBLE_COMMENT_END;
-            }
-            else
-            {
-                push_char_in_token(token, newChar);
-            }
-            break;
         case '\n':
         case '\r':
-            if (token->type != COMMENT &&
-                token->type != STRING_LITERAL &&
-                token->type != WHITE_SPACE)
+            if (token->type != WHITE_SPACE)
             {
                 push_token_in_queue(queue, &token);
             }
-        break;
+            break;
         case ' ':
         case '\t':
-
-            if (token->type != STRING_LITERAL && 
-                token->type != COMMENT &&
-                token->type != COMMENT_LINE &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != WHITE_SPACE)
+            if (token->type != WHITE_SPACE)
             {
                 push_token_in_queue(queue, &token);
             }
-            else if (token->type == POSSIBLE_COMMENT_END)
+            break;
+        case 'A' ... 'D':
+        case 'F' ... 'Z':
+        case 'a' ... 'd':
+        case 'f' ... 'g':
+        case 'i' ... 'o':
+        case 'q' ... 'z':
+            if (token->type == WHITE_SPACE)
             {
                 push_char_in_token(token, newChar);
-                token->type = COMMENT;
+                token->type = IDENTIFIER;
+            }
+            else if (token->type == KEYWORD ||
+                     token->type == IDENTIFIER)
+            {
+                push_char_in_token(token, newChar);
             }
             else
             {
-              push_char_in_token(token, newChar);
-            }
-        break;
-        case 'A'...'D':
-        case 'F'...'Z':
-        case 'a'...'d':
-        case 'f'...'g':
-        case 'i'...'o':
-        case 'q'...'z':
-          if (token->type != STRING_LITERAL &&
-              token->type != COMMENT &&
-              token->type != POSSIBLE_COMMENT_END &&
-              token->type != COMMENT_LINE &&
-              token->type != IDENTIFIER &&
-              token->type != WHITE_SPACE &&
-              token->type != KEYWORD)
-            {
-               push_token_in_queue(queue, &token);
-               push_char_in_token(token, newChar);
-               token->type = IDENTIFIER;
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
+                push_token_in_queue(queue, &token);
                 token->type = IDENTIFIER;
                 push_char_in_token(token, newChar);
             }
-            else
-            {
-              push_char_in_token(token, newChar);
-            }
-        break;
-        case '$':
+            break;
+        case '$': //@TODO remove $  -> $aa$aa
         case '_':
-          if (token->type != STRING_LITERAL &&
-              token->type != COMMENT &&
-              token->type != POSSIBLE_COMMENT_END &&
-              token->type != COMMENT_LINE &&
-              token->type != IDENTIFIER &&
-                token->type != WHITE_SPACE)
-            {
-               push_token_in_queue(queue, &token);
-               push_char_in_token(token, newChar);
-               token->type = IDENTIFIER;
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
+            if (token->type == WHITE_SPACE)
             {
                 token->type = IDENTIFIER;
                 push_char_in_token(token, newChar);
             }
+            else if (token->type == IDENTIFIER)
+            {
+                push_char_in_token(token, newChar);
+            }
             else
             {
-              push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
+                push_char_in_token(token, newChar);
+                token->type = IDENTIFIER;
             }
-        break;
+            break;
+
         case 'e':
         case 'E':
-            if (token->type != STRING_LITERAL &&
-              token->type != COMMENT &&
-              token->type != POSSIBLE_COMMENT_END &&
-              token->type != COMMENT_LINE &&
-              token->type != IDENTIFIER &&
-              token->type != WHITE_SPACE &&
-              token->type != DOUBLE_LITERAL &&
-              token->type != KEYWORD)
-            {
-               push_token_in_queue(queue, &token);
-               push_char_in_token(token, newChar);
-               token->type = IDENTIFIER;
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
+            if (token->type == WHITE_SPACE)
             {
                 push_char_in_token(token, newChar);
-                token->type = COMMENT;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
                 token->type = IDENTIFIER;
+            }
+            else if (token->type == IDENTIFIER)
+            {
                 push_char_in_token(token, newChar);
             }
             else if (token->type == DOUBLE_LITERAL)
@@ -657,115 +456,65 @@ void Scan(FILE *file)
             }
             else
             {
-              push_char_in_token(token, newChar);
+                push_token_in_queue(queue, &token);
+                push_char_in_token(token, newChar);
+                token->type = IDENTIFIER;
             }
-        break;
+            break;
         case 'p':
-            if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != IDENTIFIER &&
-                token->type != POSSIBLE_KEYWORD &&
-                token->type != KEYWORD_h &&
-                token->type != WHITE_SPACE &&
-                token->type != KEYWORD)
+            if (token->type == WHITE_SPACE)
             {
-               push_token_in_queue(queue, &token);
-               push_char_in_token(token, newChar);
-               token->type = IDENTIFIER;
+                token->type = IDENTIFIER;
+                push_char_in_token(token, newChar);
             }
             else if (token->type == POSSIBLE_KEYWORD)
             {
-               push_char_in_token(token, newChar);
-               token->type = KEYWORD_p;
+                push_char_in_token(token, newChar);
+                token->type = KEYWORD_p;
             }
-            else if (token->type == WHITE_SPACE)
+            else if (token->type == IDENTIFIER ||
+                     token->type == KEYWORD)
             {
-                token->type = IDENTIFIER;
                 push_char_in_token(token, newChar);
             }
             else if (token->type == KEYWORD_h)
             {
-               push_char_in_token(token, newChar);
-               token->type = KEYWORD;
-               push_token_in_queue(queue, &token);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
                 push_char_in_token(token, newChar);
-                token->type = COMMENT;
+                token->type = KEYWORD;
+                push_token_in_queue(queue, &token);
             }
             else
             {
-              push_char_in_token(token, newChar);
-            }
-        break;
-        case 'h':
-          if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != IDENTIFIER &&
-                token->type != KEYWORD_p &&
-                token->type != WHITE_SPACE &&
-                token->type != KEYWORD)
-            {
-               push_token_in_queue(queue, &token);
-               push_char_in_token(token, newChar);
-               token->type = IDENTIFIER;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
+                push_token_in_queue(queue, &token);
+                push_char_in_token(token, newChar);
                 token->type = IDENTIFIER;
+            }
+            break;
+
+        case 'h':
+            if (token->type == WHITE_SPACE)
+            {
+                push_char_in_token(token, newChar);
+                token->type = IDENTIFIER;
+            }
+            else if (
+                token->type == IDENTIFIER ||
+                token->type == KEYWORD)
+            {
                 push_char_in_token(token, newChar);
             }
             else if (token->type == KEYWORD_p)
             {
-               push_char_in_token(token, newChar);
-               token->type = KEYWORD_h;
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
                 push_char_in_token(token, newChar);
-                token->type = COMMENT;
+                token->type = KEYWORD_h;
             }
             else
             {
-              push_char_in_token(token, newChar);
-            }
-        break;
-        case '"':
-          if (token->type != STRING_LITERAL &&
-                token->type != COMMENT &&
-                token->type != POSSIBLE_COMMENT_END &&
-                token->type != COMMENT_LINE &&
-                token->type != WHITE_SPACE)
-            {
-               push_token_in_queue(queue, &token);
-               push_char_in_token(token, newChar);
-               token->type = STRING_LITERAL;
-            }
-            else if (token->type == WHITE_SPACE)
-            {
-                token->type = STRING_LITERAL;
-                push_char_in_token(token, newChar);
-            }
-            else if (token->type == STRING_LITERAL)
-            {
-                push_char_in_token(token, newChar);
                 push_token_in_queue(queue, &token);
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
                 push_char_in_token(token, newChar);
-                token->type = COMMENT;
+                token->type = IDENTIFIER;
             }
-            else 
-            {
-                push_char_in_token(token, newChar);
-            }
-        break; 
+            break;
         }
     }
     node_t *node = queue->head;
