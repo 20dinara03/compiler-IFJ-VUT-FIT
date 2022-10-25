@@ -1,8 +1,7 @@
 
 #ifndef SCANNER
 #define SCANNER
-#include "./token.h"
-#include "../common/queue.h"
+#include "token.h"
 
 void Scan(FILE *file);
 

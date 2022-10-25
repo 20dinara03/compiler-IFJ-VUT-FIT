@@ -31,5 +31,7 @@ int main(int argc, char *argv[])
 
     Scan(fp);
 
+    fclose(fp);
+
     return 0;
 }

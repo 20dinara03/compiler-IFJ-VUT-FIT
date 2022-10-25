@@ -2,6 +2,7 @@
     "files.associations": {
         "realscanner": "c",
         "queue.h": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "token.h": "c"
     }
 }

@@ -6,7 +6,7 @@ program_t program;
  * @brief Program clean up function
  */
 void free_program(){
-    free_queue(program.queue, free_token);
+    // free_queue(program.queue, free_token);
 }
 
 /**

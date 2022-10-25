@@ -18,3 +18,5 @@ $a = $a * 1 / 5;
 }
 write("Vysledek je: ", $vysl, "\n");
 }
+
+?>

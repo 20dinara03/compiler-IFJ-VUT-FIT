@@ -1,4 +1,3 @@
-#include "queue.h"
 #include "../scanner/token.h"
 
 enum ERRORS
@@ -16,5 +15,5 @@ enum ERRORS
 
 /* Program structures structure */
 typedef struct{
-   queue_t *queue;
+   input_stack_t *queue;
 } program_t;

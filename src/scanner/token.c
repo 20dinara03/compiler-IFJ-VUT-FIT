@@ -18,14 +18,100 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "COMMENT_LINE",
     "KEYWORD_h",
     "KEYWORD_p",
-    "EXPONENTA"
-    };
+    "EXPONENTA"};
 
-/**
- * @brief Constructor for token_t
- *
- * @return new pointer to token_t
- */
+input_node_t *init_input_node(token_t *token)
+{
+    input_node_t *node = NULL;
+
+    memo_allocate(node, input_node_t, 1);
+
+    node->token = token;
+
+    return node;
+}
+
+void push_token_in_queue(input_stack_t *self, token_t *token)
+{
+    if (self == NULL)
+        return;
+
+    input_node_t *new_node = init_input_node(token);
+
+    if (self->head == NULL)
+    {
+        new_node->next = NULL;
+        self->head = new_node;
+    }
+    else
+    {
+        new_node->next = self->head;
+        self->head = new_node;
+    }
+}
+
+void free_stack(input_stack_t **self)
+{
+    if (self == NULL || (*self)->head == NULL)
+        return;
+
+    input_node_t *current_node = (*self)->head;
+    while (current_node != NULL)
+    {
+        current_node = current_node->next;
+        (*self)->head->token->free(&((*self)->head->token));
+        free((*self)->head);
+        (*self)->head = current_node;
+    }
+    free(*self);
+}
+
+input_stack_t *init_input_stack()
+{
+    input_stack_t *stack = NULL;
+
+    memo_allocate(stack, input_stack_t, 1);
+
+    stack->push = push_token_in_queue;
+    stack->free = free_stack;
+
+    return stack;
+}
+
+void push_char_in_token(token_t *self, char ch)
+{
+    if (self->text == NULL)
+    {
+        memo_allocate(self->text, char, 2);
+        self->text[0] = ch;
+        self->text[1] = '\0';
+    }
+    else
+    {
+        const size_t length = strlen(self->text);
+        memo_reallocate(self->text, char, length + 2);
+        self->text[length] = ch;
+        self->text[length + 1] = '\0';
+    }
+}
+
+void reset_token(token_t **self)
+{
+    *self = init_token();
+}
+
+void debug_token(token_t *self)
+{
+    printf("( %s : %s )\n", TOKEN_TYPE_TO_STRING[self->type], self->text);
+}
+
+void free_token(token_t **self)
+{
+    free((*self)->text);
+    free(*self);
+    *self = NULL;
+}
+
 token_t *init_token()
 {
 
@@ -35,53 +121,10 @@ token_t *init_token()
 
     token->type = WHITE_SPACE;
 
+    token->push_char = push_char_in_token;
+    token->reset = reset_token;
+    token->debug = debug_token;
+    token->free = free_token;
+
     return token;
-}
-
-/**
- * @brief Appends symbol at the end of the token text
- *
- * @param token pointer to a target token_t
- * @param ch input char
- */
-void push_char_in_token(token_t *token, char ch)
-{
-    if (token->text == NULL)
-    {
-        memo_allocate(token->text, char, 2);
-        token->text[0] = ch;
-        token->text[1] = '\0';
-    }
-    else
-    {
-        const size_t length = strlen(token->text);
-        memo_reallocate(token->text, char, length + 2);
-        token->text[length] = ch;
-        token->text[length + 1] = '\0';
-    }
-}
-
-/**
- * @brief Inserts into the target queue and resets given token
- *
- * @param queue pointer to a target queue_t
- * @param token pointer* to a given token_t
- */
-void push_token_in_queue(queue_t *queue, token_t **token)
-{
-    enqueue(queue, *token);
-    *token = init_token();
-}
-
-/**
- *
- * @todo delete debug
- *
- * @brief Prints token in console, in (type : value) format
- *
- * @param token pointer to token_t
- */
-void print_token(token_t *token)
-{
-    printf("( %s : %s )\n", TOKEN_TYPE_TO_STRING[token->type], token->text);
 }

@@ -8,14 +8,14 @@ extern "C"
 
 TEST(Queue, Init)
 {
-    queue_t *queue = init_queue();
+    input_stack_t *queue = init_input_stack();
 
     EXPECT_TRUE(queue->head == queue->tail && queue->head == nullptr && queue->length == 0);
 }
 
 TEST(Queue, Enqueue_Easy)
 {
-    queue_t *queue = init_queue();
+    input_stack_t *queue = init_input_stack();
     token_t *token = init_token();
     push_char_in_token(token, 'a');
     push_token_in_queue(queue, &token);
@@ -29,7 +29,7 @@ TEST(Queue, Enqueue_Easy)
 
 TEST(Queue, Enqueue_Hard)
 {
-    queue_t *queue = init_queue();
+    input_stack_t *queue = init_input_stack();
     token_t *token = init_token();
     const int MAX_SIZE = 1000;
     

@@ -8,68 +8,72 @@
 
 void Scan(FILE *file)
 {
-    /* Setting up default values for queues & tokens */
+    /* Setting up default values for stacks & tokens */
 
-    queue_t *queue = init_queue();
+    input_stack_t *stack = init_input_stack();
     token_t *token = init_token();
 
     /*Reading 1 character from a file until we reach the end of it*/
-    char newChar;
+    char current_char;
     while (!feof(file))
     {
-        newChar = fgetc(file);
+        current_char = fgetc(file);
 
-        switch (newChar)
+        switch (current_char)
         {
         case '\r':
         case '\n':
             if (token->type == COMMENT_LINE)
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             break;
         case '*':
             if (token->type == COMMENT)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = POSSIBLE_COMMENT_END;
             }
             else if (token->type == POSSIBLE_COMMENT_END)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == POSSIBLE_COMMENT)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = COMMENT;
             }
             break;
         case '/':
             if (token->type == WHITE_SPACE)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = POSSIBLE_COMMENT;
             }
             else if (token->type == POSSIBLE_COMMENT)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = COMMENT_LINE;
             }
             else if (token->type == POSSIBLE_COMMENT_END)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = COMMENT;
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             break;
-        default: 
+        default:
             if (token->type == COMMENT || token->type == COMMENT_LINE)
             {
-                push_char_in_token(token, newChar);
-            }else if(token->type == POSSIBLE_COMMENT)
+                token->push_char(token, current_char);
+            }
+            else if (token->type == POSSIBLE_COMMENT)
             {
                 token->type = OPERATOR;
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
         }
 
@@ -81,35 +85,38 @@ void Scan(FILE *file)
             continue;
         }
 
-        switch (newChar)
+        switch (current_char)
         {
         case '"':
             if (token->type == WHITE_SPACE)
             {
                 token->type = STRING_LITERAL;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == STRING_LITERAL)
             {
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             else
             {
-                push_token_in_queue(queue, &token);
-                push_char_in_token(token, newChar);
+                stack->push(stack, token);
+                token->reset(&token);
+                token->push_char(token, current_char);
                 token->type = STRING_LITERAL;
             }
             break;
         default:
-            if(token->type == STRING_LITERAL){
-                push_char_in_token(token, newChar);
+            if (token->type == STRING_LITERAL)
+            {
+                token->push_char(token, current_char);
                 continue;
             }
         }
 
         // @TODO
-        switch (newChar)
+        switch (current_char)
         {
 
             /*Possible reading variations for operands '+','-', ',' , '.', ':', '(', ')', '{', '}' */
@@ -130,42 +137,48 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             /* @TODO */
             else if (token->type == EXPONENTA)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = DOUBLE_LITERAL;
             }
             /*Otherwise, continue writing to the existing token*/
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             break;
         case '.':
             if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             else if (token->type == INT_LITERAL)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = DOUBLE_LITERAL;
             }
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             break;
 
@@ -176,20 +189,21 @@ void Scan(FILE *file)
 
             if (token->type == WHITE_SPACE)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = INT_LITERAL;
             }
             else if (token->type == INT_LITERAL ||
                      token->type == DOUBLE_LITERAL ||
                      token->type == EXPONENTA)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             /*Otherwise, continue writing to the existing token*/
             else
             {
-                push_token_in_queue(queue, &token);
-                push_char_in_token(token, newChar);
+                stack->push(stack, token);
+                token->reset(&token);
+                token->push_char(token, current_char);
                 token->type = INT_LITERAL;
             }
             break;
@@ -203,14 +217,15 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = POSSIBLE_KEYWORD;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             /*Otherwise, continue writing to the existing token*/
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = POSSIBLE_KEYWORD;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
 
@@ -223,24 +238,26 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
 
             /*Otherwise if type of token is keyword, so write the operand to the token and save token with '?>' keyword */
 
             else if (token->type == KEYWORD)
             {
-                push_char_in_token(token, newChar);
-                push_token_in_queue(queue, &token);
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
             }
 
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
 
@@ -252,20 +269,21 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = KEYWORD;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == POSSIBLE_KEYWORD)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
 
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = POSSIBLE_KEYWORD;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
 
@@ -278,25 +296,27 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == POSSIBLE_KEYWORD)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = OPERATOR;
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             else if (token->type == OPERATOR)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
 
@@ -309,16 +329,17 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
 
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
 
@@ -331,25 +352,27 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = POSSIBLE_OR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
 
             /*Otherwise if type of token is possible or, so write the operand to the token and save token with '||' operator */
 
             else if (token->type == POSSIBLE_OR)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = OPERATOR;
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
 
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = OPERATOR;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
 
@@ -361,23 +384,25 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = POSSIBLE_AND;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             /*Otherwise if type of token is possible and, so write the operand to the token and save token with '||' operator */
 
             else if (token->type == POSSIBLE_AND)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = OPERATOR;
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             /*Otherwise, continue writing to the existing token*/
 
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = POSSIBLE_AND;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
 
@@ -386,14 +411,16 @@ void Scan(FILE *file)
         case '\r':
             if (token->type != WHITE_SPACE)
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             break;
         case ' ':
         case '\t':
             if (token->type != WHITE_SPACE)
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             break;
         case 'A' ... 'D':
@@ -404,19 +431,20 @@ void Scan(FILE *file)
         case 'q' ... 'z':
             if (token->type == WHITE_SPACE)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = IDENTIFIER;
             }
             else if (token->type == KEYWORD ||
                      token->type == IDENTIFIER)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else
             {
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
                 token->type = IDENTIFIER;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             break;
         case '$': //@TODO remove $  -> $aa$aa
@@ -424,16 +452,17 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = IDENTIFIER;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == IDENTIFIER)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else
             {
-                push_token_in_queue(queue, &token);
-                push_char_in_token(token, newChar);
+                stack->push(stack, token);
+                token->reset(&token);
+                token->push_char(token, current_char);
                 token->type = IDENTIFIER;
             }
             break;
@@ -442,22 +471,23 @@ void Scan(FILE *file)
         case 'E':
             if (token->type == WHITE_SPACE)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = IDENTIFIER;
             }
             else if (token->type == IDENTIFIER)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == DOUBLE_LITERAL)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = EXPONENTA;
             }
             else
             {
-                push_token_in_queue(queue, &token);
-                push_char_in_token(token, newChar);
+                stack->push(stack, token);
+                token->reset(&token);
+                token->push_char(token, current_char);
                 token->type = IDENTIFIER;
             }
             break;
@@ -465,28 +495,30 @@ void Scan(FILE *file)
             if (token->type == WHITE_SPACE)
             {
                 token->type = IDENTIFIER;
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == POSSIBLE_KEYWORD)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = KEYWORD_p;
             }
             else if (token->type == IDENTIFIER ||
                      token->type == KEYWORD)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == KEYWORD_h)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = KEYWORD;
-                push_token_in_queue(queue, &token);
+                stack->push(stack, token);
+                token->reset(&token);
             }
             else
             {
-                push_token_in_queue(queue, &token);
-                push_char_in_token(token, newChar);
+                stack->push(stack, token);
+                token->reset(&token);
+                token->push_char(token, current_char);
                 token->type = IDENTIFIER;
             }
             break;
@@ -494,39 +526,39 @@ void Scan(FILE *file)
         case 'h':
             if (token->type == WHITE_SPACE)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = IDENTIFIER;
             }
             else if (
                 token->type == IDENTIFIER ||
                 token->type == KEYWORD)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
             }
             else if (token->type == KEYWORD_p)
             {
-                push_char_in_token(token, newChar);
+                token->push_char(token, current_char);
                 token->type = KEYWORD_h;
             }
             else
             {
-                push_token_in_queue(queue, &token);
-                push_char_in_token(token, newChar);
+                stack->push(stack, token);
+                token->reset(&token);
+                token->push_char(token, current_char);
                 token->type = IDENTIFIER;
             }
             break;
         }
     }
-    node_t *node = queue->head;
+    input_node_t *node = stack->head;
 
     while (node)
     {
-        print_token(node->data);
+        node->token->debug(node->token);
         node = node->next;
     }
 
     /* clean up */
-
-    free_token(token);
-    free_queue(queue, free_token);
+    stack->free(&stack);
+    token->free(&token);
 }

@@ -13,39 +13,39 @@
 // {
 //     /* Setting up default values for queues & tokens */
 
-//     queue_t *queue = init_queue();
+//     input_stack_t *queue = init_input_stack();
 //     token_t *token = init_token();
 
 //     /* scanning expression "$a + $b * $c" */
 
-//     push_char_in_token(token, '$'); // inserts '$' in a token
-//     push_char_in_token(token, 'a'); // inserts 'a' in a token
+//     push_char(token, '$'); // inserts '$' in a token
+//     push_char(token, 'a'); // inserts 'a' in a token
 //     token->type = IDENTIFIER; // sets up type of a token
 //     push_token_in_queue(queue, &token); // pushes token to a queue, and resets the token (creates a new one)
 
-//     push_char_in_token(token, '+');
+//     push_char(token, '+');
 //     token->type = OPERATOR;
 //     push_token_in_queue(queue, &token);
 
-//     push_char_in_token(token, '$');
-//     push_char_in_token(token, 'b');
+//     push_char(token, '$');
+//     push_char(token, 'b');
 //     token->type = IDENTIFIER;
 //     push_token_in_queue(queue, &token);
 
-//     push_char_in_token(token, '*');
+//     push_char(token, '*');
 //     token->type = OPERATOR;
 //     push_token_in_queue(queue, &token);
 
-//     push_char_in_token(token, '$');
-//     push_char_in_token(token, 'c');
+//     push_char(token, '$');
+//     push_char(token, 'c');
 //     token->type = IDENTIFIER;
 //     push_token_in_queue(queue, &token);
 
-//     push_char_in_token(token, ';');
+//     push_char(token, ';');
 //     token->type = OPERATOR;
 //     push_token_in_queue(queue, &token);
 
-//     node_t*node = queue->head;
+//     input_node_t*node = queue->head;
 
 //     while(node){
 //         print_token(node->data);
