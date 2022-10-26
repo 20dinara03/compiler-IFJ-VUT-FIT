@@ -25,8 +25,7 @@ typedef enum
     EXPONENTA
 } types_t;
 
-typedef struct input_node_t input_node_t;
-typedef struct input_stack_t input_stack_t;
+
 typedef struct token_t token_t;
 
 /* token struct */
@@ -58,48 +57,13 @@ struct token_t
      */
     void (*debug)(token_t *);
     /**
-     * @brief Token clean up function
+     * @brief Destructor for token
      *
      * @param token pointer to token_t
      */
     void (*free)(token_t **);
 };
 
-/* list node struct */
-struct input_node_t
-{
-    token_t *token;
-    input_node_t *next;
-};
-
-/* stack struct */
-struct input_stack_t
-{
-    input_node_t *head;
-    size_t length;
-    /**
-     * @brief Appends symbol at the end of the token text
-     *
-     * @param token pointer to a target token_t
-     * @param ch input char
-     */
-    void (*push)(input_stack_t *, token_t *);
-    void (*free)(input_stack_t **);
-};
-
-/**
- * @brief Contructor for the input_stack_t
- *
- * @return new pointer to input_stack_t
- */
-input_node_t *init_input_node(token_t *data);
-
-/**
- * @brief Contructor for the input_node_t
- *
- * @return new pointer to input_node_t
- */
-input_stack_t *init_input_stack();
 /**
  * @brief Constructor for token_t
  *

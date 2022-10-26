@@ -1,4 +1,5 @@
 #include "../scanner/token.h"
+#include "../scanner/input_stack.h"
 
 enum ERRORS
 {

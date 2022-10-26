@@ -5,6 +5,7 @@
  * @version 0.1
  */
 #include "realscanner.h"
+#include "input_stack.h"
 
 void Scan(FILE *file)
 {
