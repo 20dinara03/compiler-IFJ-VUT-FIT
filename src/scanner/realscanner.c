@@ -72,7 +72,7 @@ void Scan(FILE *file)
             }
             else if (token->type == POSSIBLE_COMMENT)
             {
-                token->type = OPERATOR;
+                token->type = OPERATOR_DIVIDE;
                 stack->push(stack, token);
                 token->reset(&token);
             }
@@ -123,15 +123,215 @@ void Scan(FILE *file)
             /*Possible reading variations for operands '+','-', ',' , '.', ':', '(', ')', '{', '}' */
 
         case '+':
+             /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_PLUS;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            else if (token->type == EXPONENTA)
+            {
+                token->push_char(token, current_char);
+                token->type = DOUBLE_LITERAL;
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_PLUS;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case '-':
+             /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_MINUS;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            else if (token->type == EXPONENTA)
+            {
+                token->push_char(token, current_char);
+                token->type = DOUBLE_LITERAL;
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_MINUS;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case '*':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_MULTIPLY;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_MULTIPLY;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case '(':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_LEFT_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_LEFT_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case ')':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_RIGHT_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_RIGHT_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case ':':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_COLON;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_COLON;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case ',':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_COMMA;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_COMMA;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case '{':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_LEFT_CURLY_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_LEFT_CURLY_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case '}':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_RIGHT_CURLY_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_RIGHT_CURLY_BRACKET;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case ';':
+            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
+            if (token->type == WHITE_SPACE)
+            {
+                token->type = OPERATOR_SEMICOLON;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            /*Otherwise, continue writing to the existing token*/
+            else
+            {
+                stack->push(stack, token);
+                token->reset(&token);
+                token->type = OPERATOR_SEMICOLON;
+                token->push_char(token, current_char);
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            break;
         case '\\':
 
             /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
@@ -141,12 +341,6 @@ void Scan(FILE *file)
                 token->push_char(token, current_char);
                 stack->push(stack, token);
                 token->reset(&token);
-            }
-            /* @TODO */
-            else if (token->type == EXPONENTA)
-            {
-                token->push_char(token, current_char);
-                token->type = DOUBLE_LITERAL;
             }
             /*Otherwise, continue writing to the existing token*/
             else
@@ -162,7 +356,7 @@ void Scan(FILE *file)
         case '.':
             if (token->type == WHITE_SPACE)
             {
-                token->type = OPERATOR;
+                token->type = OPERATOR_POINT;
                 token->push_char(token, current_char);
                 stack->push(stack, token);
                 token->reset(&token);
@@ -176,7 +370,7 @@ void Scan(FILE *file)
             {
                 stack->push(stack, token);
                 token->reset(&token);
-                token->type = OPERATOR;
+                token->type = OPERATOR_POINT;
                 token->push_char(token, current_char);
                 stack->push(stack, token);
                 token->reset(&token);
@@ -217,7 +411,7 @@ void Scan(FILE *file)
 
             if (token->type == WHITE_SPACE)
             {
-                token->type = POSSIBLE_KEYWORD;
+                token->type = OPERATOR_LESS;
                 token->push_char(token, current_char);
             }
             /*Otherwise, continue writing to the existing token*/
@@ -225,7 +419,7 @@ void Scan(FILE *file)
             {
                 stack->push(stack, token);
                 token->reset(&token);
-                token->type = POSSIBLE_KEYWORD;
+                token->type = OPERATOR_LESS;
                 token->push_char(token, current_char);
             }
             break;
@@ -238,7 +432,7 @@ void Scan(FILE *file)
 
             if (token->type == WHITE_SPACE)
             {
-                token->type = OPERATOR;
+                token->type = OPERATOR_GREATER;
                 token->push_char(token, current_char);
             }
 
@@ -257,7 +451,7 @@ void Scan(FILE *file)
             {
                 stack->push(stack, token);
                 token->reset(&token);
-                token->type = OPERATOR;
+                token->type = OPERATOR_GREATER;
                 token->push_char(token, current_char);
             }
             break;
@@ -272,9 +466,10 @@ void Scan(FILE *file)
                 token->type = KEYWORD;
                 token->push_char(token, current_char);
             }
-            else if (token->type == POSSIBLE_KEYWORD)
+            else if (token->type == OPERATOR_LESS)
             {
                 token->push_char(token, current_char);
+                token->type = POSSIBLE_KEYWORD;
             }
 
             /*Otherwise, continue writing to the existing token*/
@@ -296,17 +491,31 @@ void Scan(FILE *file)
 
             if (token->type == WHITE_SPACE)
             {
-                token->type = OPERATOR;
+                token->type = OPERATOR_EQUAL;
                 token->push_char(token, current_char);
             }
-            else if (token->type == POSSIBLE_KEYWORD)
+            else if (token->type == OPERATOR_LESS)
             {
                 token->push_char(token, current_char);
-                token->type = OPERATOR;
+                token->type = OPERATOR_LESS_OR_EQUAL;
                 stack->push(stack, token);
                 token->reset(&token);
             }
-            else if (token->type == OPERATOR)
+            else if (token->type == OPERATOR_GREATER)
+            {
+                token->push_char(token, current_char);
+                token->type = OPERATOR_GREATER_OR_EQUAL;
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            else if (token->type == OPERATOR_NOT)
+            {
+                token->push_char(token, current_char);
+                token->type = OPERATOR_NOT_EQUAL;
+                stack->push(stack, token);
+                token->reset(&token);
+            }
+            else if (token->type == OPERATOR_EQUAL)
             {
                 token->push_char(token, current_char);
             }
@@ -316,7 +525,7 @@ void Scan(FILE *file)
             {
                 stack->push(stack, token);
                 token->reset(&token);
-                token->type = OPERATOR;
+                token->type = OPERATOR_EQUAL;
                 token->push_char(token, current_char);
             }
             break;
@@ -329,7 +538,7 @@ void Scan(FILE *file)
 
             if (token->type == WHITE_SPACE)
             {
-                token->type = OPERATOR;
+                token->type = OPERATOR_NOT;
                 token->push_char(token, current_char);
             }
 
@@ -339,7 +548,7 @@ void Scan(FILE *file)
             {
                 stack->push(stack, token);
                 token->reset(&token);
-                token->type = OPERATOR;
+                token->type = OPERATOR_NOT;
                 token->push_char(token, current_char);
             }
             break;
@@ -361,7 +570,7 @@ void Scan(FILE *file)
             else if (token->type == POSSIBLE_OR)
             {
                 token->push_char(token, current_char);
-                token->type = OPERATOR;
+                token->type = OPERATOR_OR;
                 stack->push(stack, token);
                 token->reset(&token);
             }
@@ -372,7 +581,7 @@ void Scan(FILE *file)
             {
                 stack->push(stack, token);
                 token->reset(&token);
-                token->type = OPERATOR;
+                token->type = POSSIBLE_OR;
                 token->push_char(token, current_char);
             }
             break;
@@ -392,7 +601,7 @@ void Scan(FILE *file)
             else if (token->type == POSSIBLE_AND)
             {
                 token->push_char(token, current_char);
-                token->type = OPERATOR;
+                token->type = OPERATOR_AND;
                 stack->push(stack, token);
                 token->reset(&token);
             }
