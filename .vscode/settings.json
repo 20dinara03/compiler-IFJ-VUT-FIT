@@ -3,6 +3,8 @@
         "realscanner": "c",
         "queue.h": "c",
         "main.h": "c",
-        "token.h": "c"
+        "token.h": "c",
+        "error.h": "c",
+        "memo.h": "c"
     }
 }

@@ -10,10 +10,10 @@
 #include "./main.h"
 #include "./common/error.h"
 #include "./scanner/realscanner.h"
-
+#include "./common/symbol-table.h"
 
 int main(int argc, char *argv[])
-{ 
+{
     if (argc != 2)
     {
         fprintf(stderr, "Wrong number of arguments\n");
