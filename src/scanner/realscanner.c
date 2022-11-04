@@ -6,6 +6,428 @@
  */
 #include "realscanner.h"
 #include "input_stack.h"
+#include "../main.h"
+
+token_t* scan_number(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = INT_LITERAL;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+          case '0'...'9':
+          token->push_char(token, current);
+          if (token->type == EXPONENTA || token->type == EXPONENTAL_OPERATOR)
+          {
+            token->type = DOUBLE_LITERAL;
+          }
+          break;
+          case '.':
+          if (token->type == INT_LITERAL)
+          {
+            token->push_char(token, current);
+            token->type = DOUBLE_LITERAL;
+          }
+          break;
+          case 'E':
+          case 'e':
+          if (token->type == DOUBLE_LITERAL)
+          {
+            token->push_char(token, current);
+            token->type = EXPONENTA;
+          }
+          break;
+          case '+':
+          case '-':
+          if(token->type == EXPONENTA)
+          {
+            token->push_char(token, current);
+            token->type = EXPONENTAL_OPERATOR;
+          }
+          break;
+          default:
+          token_end = true;
+        }
+    }
+    return(token);
+}
+
+token_t* scan_identifier(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = IDENTIFIER;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case 'A'... 'Z':
+            case 'a'...'z':
+            case '_':
+            case '0'...'9':
+             token->push_char(token, current);
+            break;
+            default:
+            token_end = true;
+        }
+    }
+  return(token);
+}
+
+token_t* scan_variable_identifier(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = VARIABLE_IDENTIFIER;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case 'A'... 'Z':
+            case 'a'...'z':
+            case '_':
+            case '0'...'9':
+             token->push_char(token, current);
+            break;
+            default:
+            token_end = true;
+        }
+    }
+  return(token);
+}
+
+token_t* scan_head(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = POSSIBLE_HEAD;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case '?':
+            if (token->type == POSSIBLE_HEAD)
+            {
+            token->push_char(token, current);
+            token->type =HEAD;
+            }
+            break;
+            case 'p':
+            if (token->type == HEAD)
+            {
+             token->push_char(token, current);
+             token->type =KEYWORD_p;
+            }
+            else if (token->type == KEYWORD_h)
+            {
+             token->push_char(token, current);
+             token->type =HEAD;
+             token_end = true;
+            }
+            break;
+            case 'h':
+            if (token->type == KEYWORD_p)
+            {
+             token->push_char(token, current);
+             token->type =KEYWORD_h;
+            }
+            break;
+            case '=':
+            if (token->type == POSSIBLE_HEAD)
+            {
+             token->push_char(token, current);
+             token->type =OPERATOR_LESS_OR_EQUAL;
+             token_end = true;
+            }
+            default:
+            if (token->type == POSSIBLE_HEAD)
+            {
+                token->type = OPERATOR_LESS;
+            }
+            token_end = true;
+        }
+    }
+  return(token);
+}
+
+token_t* scan_end(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = POSSIBLE_END;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case '>':
+            if (token->type == POSSIBLE_END)
+            {
+             token->push_char(token, current);
+             token->type = END;
+             token_end = true;
+            }
+            break;
+            case 'A'...'Z':
+            case 'a'...'z':
+            token->push_char(token, current);
+            token->type = TYPE_IDENTIFIER;
+            default:
+            token_end = true;
+        }
+    }
+  return(token);
+}
+
+token_t* scan_comment(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = POSSIBLE_COMMENT;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case '/':
+            if (token->type == POSSIBLE_COMMENT)
+            {
+            token->push_char(token, current);
+            token->type = COMMENT_LINE;
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                token->push_char(token, current);
+                token->type = COMMENT;
+                token_end = true;
+            }
+            break;
+            case '*':
+            if (token->type == POSSIBLE_COMMENT)
+            {
+             token->push_char(token, current);
+             token->type = COMMENT;
+            }
+            else if (token->type == COMMENT)
+            {
+             token->push_char(token, current);
+             token->type = POSSIBLE_COMMENT_END; 
+            }
+            break;
+            case '\n':
+            case '\r':
+            if (token->type == COMMENT_LINE)
+            {
+                token_end = true;
+            }
+            break;
+            default:
+            if (token->type == POSSIBLE_COMMENT)
+            {
+                token->type=OPERATOR_DIVIDE;
+                token_end = true;
+            }
+            else if (token->type == POSSIBLE_COMMENT_END)
+            {
+                token->push_char(token, current);
+                token->type = COMMENT;
+            }
+            else 
+            {
+                token->push_char(token, current);
+            }
+        }
+    }
+  return(token);
+}
+
+token_t* scan_operator(char cur_char,types_t type)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = type;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case'=':
+            if (token->type == OPERATOR_NOT)
+            {
+             token->push_char(token, current);
+             token->type = OPERATOR_NOT_EQUAL;
+            }
+            else if (token->type = OPERATOR_NOT_EQUAL)
+            {
+                token->push_char(token, current);
+                token_end = true;
+            }
+            else if (token->type == OPERATOR_GREATER)
+            {
+                token->push_char(token, current);
+                token->type = OPERATOR_GREATER_OR_EQUAL;
+                token_end = true;
+            }
+            else if (token->type == OPERATOR_EQUAL)
+            {
+                token->push_char(token, current);
+            }
+            break;
+            case '|':
+            if (token->type == POSSIBLE_OR)
+            {
+                token->push_char(token, current);
+                token->type = OPERATOR_OR;
+                token_end = true;
+            }
+            break;
+            case '&':
+            if (token->type == POSSIBLE_AND)
+            {
+                token->push_char(token, current);
+                token->type = OPERATOR_AND;
+                token_end = true;
+            }
+            break;
+            default:
+            token_end = true;
+        }
+    }
+  return(token);
+}
+
+token_t* scan_string(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = STRING_LITERAL;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case '"':
+             token->push_char(token, current);
+             token_end = true;
+            break;
+            default:
+            token->push_char(token, current);
+        }
+    }
+  return(token);
+}
+
+token_t* scan_slash(char cur_char)
+{
+    token_t* token = init_token();
+    token->push_char(token, cur_char);
+    token->type = OPERATOR_SLASH;
+    bool token_end = false;
+
+    while (!token_end)
+    {
+        char current = fgetc(program.src);
+
+        switch(current)
+        {
+            case 'n':
+            case 'r':
+            case 't':
+            case '\\':
+            case '$':
+            case '"':
+            if (token->type == OPERATOR_SLASH)
+            {
+            token->push_char(token, current);
+            token->type = ESCAPE_SEQUENCE;
+            token_end = true;
+            }
+            break;
+            case 'x':
+            if (token->type == OPERATOR_SLASH)
+            {
+                token->push_char(token, current);
+                token->type = HEXADECIMAL_NUMBER_X;
+            }
+            case 'A'... 'F':
+            case 'a'...'f':
+            case '8'...'9':
+             if (token->type == HEXADECIMAL_NUMBER_X)
+             {
+              token->push_char(token, current);
+              token->type = HEXADECIMAL_NUMBER_1;
+             }
+             else if (token->type == HEXADECIMAL_NUMBER_1)
+             {
+              token->push_char(token, current);
+              token->type = HEXADECIMAL_NUMBER;
+              token_end = true;
+             }
+            break;
+            case '0'...'7':
+            if (token->type == HEXADECIMAL_NUMBER_X)
+             {
+              token->push_char(token, current);
+              token->type = HEXADECIMAL_NUMBER_1;
+             }
+             else if (token->type == HEXADECIMAL_NUMBER_1)
+             {
+              token->push_char(token, current);
+              token->type = HEXADECIMAL_NUMBER;
+              token_end = true;
+             }
+             else if (token->type == OPERATOR_SLASH)
+             {
+                token->push_char(token, current);
+                token->type = OCTAVE_NUMBER_1;
+             }
+             else if (token->type == OCTAVE_NUMBER_1)
+             {
+                token->push_char(token, current);
+                token->type = OCTAVE_NUMBER_2;
+             }
+             else if (token->type == OCTAVE_NUMBER_2)
+             {
+                token->push_char(token, current);
+                token->type = OCTAVE_NUMBER;
+                token_end = true;
+             }
+            default:
+            token_end = true;
+        }
+    }
+  return(token);
+}
 
 void Scan(FILE *file)
 {
@@ -22,744 +444,125 @@ void Scan(FILE *file)
 
         switch (current_char)
         {
-        case '\r':
-        case '\n':
-            if (token->type == COMMENT_LINE)
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
         case '*':
-            if (token->type == COMMENT)
-            {
-                token->push_char(token, current_char);
-                token->type = POSSIBLE_COMMENT_END;
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                token->push_char(token, current_char);
-            }
-            else if (token->type == POSSIBLE_COMMENT)
-            {
-                token->push_char(token, current_char);
-                token->type = COMMENT;
-            }
-            break;
+         token->type = OPERATOR_MULTIPLY;
+         scan_operator(current_char, token->type);
+        break;
+
         case '/':
-            if (token->type == WHITE_SPACE)
-            {
-                token->push_char(token, current_char);
-                token->type = POSSIBLE_COMMENT;
-            }
-            else if (token->type == POSSIBLE_COMMENT)
-            {
-                token->push_char(token, current_char);
-                token->type = COMMENT_LINE;
-            }
-            else if (token->type == POSSIBLE_COMMENT_END)
-            {
-                token->push_char(token, current_char);
-                token->type = COMMENT;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
-        default:
-            if (token->type == COMMENT || token->type == COMMENT_LINE)
-            {
-                token->push_char(token, current_char);
-            }
-            else if (token->type == POSSIBLE_COMMENT)
-            {
-                token->type = OPERATOR_DIVIDE;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-        }
+         scan_comment(current_char);
+        break;
 
-        if (token->type == COMMENT ||
-            token->type == COMMENT_LINE ||
-            token->type == POSSIBLE_COMMENT_END ||
-            token->type == POSSIBLE_COMMENT)
-        {
-            continue;
-        }
-
-        switch (current_char)
-        {
         case '"':
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = STRING_LITERAL;
-                token->push_char(token, current_char);
-            }
-            else if (token->type == STRING_LITERAL)
-            {
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->push_char(token, current_char);
-                token->type = STRING_LITERAL;
-            }
-            break;
-        default:
-            if (token->type == STRING_LITERAL)
-            {
-                token->push_char(token, current_char);
-                continue;
-            }
-        }
-
-        // @TODO
-        switch (current_char)
-        {
-
-            /*Possible reading variations for operands '+','-', ',' , '.', ':', '(', ')', '{', '}' */
+         scan_string(current_char);
+        break;
 
         case '+':
-             /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_PLUS;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else if (token->type == EXPONENTA)
-            {
-                token->push_char(token, current_char);
-                token->type = DOUBLE_LITERAL;
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_PLUS;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_PLUS;
+         scan_operator(current_char, token->type);
+        break;
+
         case '-':
-             /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_MINUS;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else if (token->type == EXPONENTA)
-            {
-                token->push_char(token, current_char);
-                token->type = DOUBLE_LITERAL;
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_MINUS;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
-        case '*':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_MULTIPLY;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_MULTIPLY;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_MINUS;
+         scan_operator(current_char, token->type);
+        break;
+
         case '(':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_LEFT_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_LEFT_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_LEFT_BRACKET;
+         scan_operator(current_char, token->type);
+        break;
+
         case ')':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_RIGHT_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_RIGHT_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_RIGHT_BRACKET;
+         scan_operator(current_char, token->type);
+        break;
+        
         case ':':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_COLON;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_COLON;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_COLON;
+         scan_operator(current_char, token->type);
+        break;
+
         case ',':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_COMMA;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_COMMA;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_COMMA;
+         scan_operator(current_char, token->type);
+        break;
+
         case '{':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_LEFT_CURLY_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_LEFT_CURLY_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_LEFT_CURLY_BRACKET;
+         scan_operator(current_char, token->type);
+        break;
+
         case '}':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_RIGHT_CURLY_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_RIGHT_CURLY_BRACKET;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_RIGHT_CURLY_BRACKET;
+         scan_operator(current_char, token->type);
+        break;
+
         case ';':
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_SEMICOLON;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_SEMICOLON;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_SEMICOLON;
+         scan_operator(current_char, token->type);
+        break;
+
         case '\\':
+         scan_slash(current_char);
+        break;
 
-            /*If it's not in quotes or a comment,* then we create a new token for the operator and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
         case '.':
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_POINT;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else if (token->type == INT_LITERAL)
-            {
-                token->push_char(token, current_char);
-                token->type = DOUBLE_LITERAL;
-            }
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_POINT;
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
+         token->type = OPERATOR_POINT;
+         scan_operator(current_char, token->type);
+        break;
 
-            /*Possible reading variations for numbers*/
         case '0' ... '9':
-
-            /*If it's not in quotes or a comment  then we create a new token for the INT literal and write it there*/
-
-            if (token->type == WHITE_SPACE)
-            {
-                token->push_char(token, current_char);
-                token->type = INT_LITERAL;
-            }
-            else if (token->type == INT_LITERAL ||
-                     token->type == DOUBLE_LITERAL ||
-                     token->type == EXPONENTA)
-            {
-                token->push_char(token, current_char);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->push_char(token, current_char);
-                token->type = INT_LITERAL;
-            }
-            break;
-
-            /*Possible reading variations for operand '<'*/
+         scan_number(current_char);
+        break;
 
         case '<':
-
-            /*If it's not in quotes or a comment, then we create a new token for the operator or keyword '<?php' and write it there*/
-
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_LESS;
-                token->push_char(token, current_char);
-            }
-            /*Otherwise, continue writing to the existing token*/
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_LESS;
-                token->push_char(token, current_char);
-            }
-            break;
-
-            /*Possible reading variations for operand '>'*/
+         scan_head(current_char);
+        break;
 
         case '>':
-
-            /*If it's not in quotes or a comment or a possible keyword, then we create a new token for the operator  and write it there*/
-
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_GREATER;
-                token->push_char(token, current_char);
-            }
-
-            /*Otherwise if type of token is keyword, so write the operand to the token and save token with '?>' keyword */
-
-            else if (token->type == KEYWORD)
-            {
-                token->push_char(token, current_char);
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_GREATER;
-                token->push_char(token, current_char);
-            }
-            break;
-
-            /*Possible reading variations for key simbol '?'*/
+         token->type = OPERATOR_GREATER;
+         scan_operator(current_char, token->type);
+        break;
 
         case '?':
-
-            /*If it's not in quotes or a comment or a possible keyword '<?php', then we create a new token for the keyword '?>'  and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = KEYWORD;
-                token->push_char(token, current_char);
-            }
-            else if (token->type == OPERATOR_LESS)
-            {
-                token->push_char(token, current_char);
-                token->type = POSSIBLE_KEYWORD;
-            }
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = POSSIBLE_KEYWORD;
-                token->push_char(token, current_char);
-            }
-            break;
-
-            /*Possible reading variations for key simbol '='*/
+         scan_end(current_char);
+        break;
 
         case '=':
-
-            /*If it's not in quotes or a comment or an operator '!' or '=' or '>', then we create a new token for the operator  and write it there*/
-
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_EQUAL;
-                token->push_char(token, current_char);
-            }
-            else if (token->type == OPERATOR_LESS)
-            {
-                token->push_char(token, current_char);
-                token->type = OPERATOR_LESS_OR_EQUAL;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else if (token->type == OPERATOR_GREATER)
-            {
-                token->push_char(token, current_char);
-                token->type = OPERATOR_GREATER_OR_EQUAL;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else if (token->type == OPERATOR_NOT)
-            {
-                token->push_char(token, current_char);
-                token->type = OPERATOR_NOT_EQUAL;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else if (token->type == OPERATOR_EQUAL)
-            {
-                token->push_char(token, current_char);
-            }
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_EQUAL;
-                token->push_char(token, current_char);
-            }
-            break;
-
-            /*Possible reading variations for key simbol '!'*/
+         token->type = OPERATOR_EQUAL;
+         scan_operator(current_char, token->type);
+        break;
 
         case '!':
-
-            /*If it's not in quotes or a comment, then we create a new token for the operator  and write it there*/
-
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = OPERATOR_NOT;
-                token->push_char(token, current_char);
-            }
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = OPERATOR_NOT;
-                token->push_char(token, current_char);
-            }
-            break;
-
-            /*Possible reading variations for key simbol '|'*/
+         token->type = OPERATOR_NOT;
+         scan_operator(current_char, token->type);
+        break;
 
         case '|':
-
-            /*If it's not in quotes or a comment or a token type is not possible OR, then we create a new token for the operator  and write it there*/
-
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = POSSIBLE_OR;
-                token->push_char(token, current_char);
-            }
-
-            /*Otherwise if type of token is possible or, so write the operand to the token and save token with '||' operator */
-
-            else if (token->type == POSSIBLE_OR)
-            {
-                token->push_char(token, current_char);
-                token->type = OPERATOR_OR;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-
-            /*Otherwise, continue writing to the existing token*/
-
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = POSSIBLE_OR;
-                token->push_char(token, current_char);
-            }
-            break;
-
-            /*Possible reading variations for key simbol '&'*/
+         token->type = POSSIBLE_OR;
+         scan_operator(current_char, token->type);
+        break;
 
         case '&':
+         token->type = POSSIBLE_AND;
+         scan_operator(current_char, token->type);
+        break;
 
-            /*If it's not in quotes or a comment or a token type is not possible AND, then we create a new token for the operator  and write it there*/
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = POSSIBLE_AND;
-                token->push_char(token, current_char);
-            }
-            /*Otherwise if type of token is possible and, so write the operand to the token and save token with '||' operator */
+        case 'A'...'Z':
+        case 'a'...'z':
+          scan_identifier(current_char);
+        break;
 
-            else if (token->type == POSSIBLE_AND)
-            {
-                token->push_char(token, current_char);
-                token->type = OPERATOR_AND;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            /*Otherwise, continue writing to the existing token*/
+        case '$': 
+          scan_variable_identifier(current_char);
+        break;
 
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = POSSIBLE_AND;
-                token->push_char(token, current_char);
-            }
-            break;
-
-            /*Possible reading variations for key simbol '/'*/
-        case '\n':
-        case '\r':
-            if (token->type != WHITE_SPACE)
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
-        case ' ':
-        case '\t':
-            if (token->type != WHITE_SPACE)
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            break;
-        case 'A' ... 'D':
-        case 'F' ... 'Z':
-        case 'a' ... 'd':
-        case 'f' ... 'g':
-        case 'i' ... 'o':
-        case 'q' ... 'z':
-            if (token->type == WHITE_SPACE)
-            {
-                token->push_char(token, current_char);
-                token->type = IDENTIFIER;
-            }
-            else if (token->type == KEYWORD ||
-                     token->type == IDENTIFIER)
-            {
-                token->push_char(token, current_char);
-            }
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->type = IDENTIFIER;
-                token->push_char(token, current_char);
-            }
-            break;
-        case '$': //@TODO remove $  -> $aa$aa
         case '_':
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = IDENTIFIER;
-                token->push_char(token, current_char);
-            }
-            else if (token->type == IDENTIFIER)
-            {
-                token->push_char(token, current_char);
-            }
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->push_char(token, current_char);
-                token->type = IDENTIFIER;
-            }
-            break;
-
-        case 'e':
-        case 'E':
-            if (token->type == WHITE_SPACE)
-            {
-                token->push_char(token, current_char);
-                token->type = IDENTIFIER;
-            }
-            else if (token->type == IDENTIFIER)
-            {
-                token->push_char(token, current_char);
-            }
-            else if (token->type == DOUBLE_LITERAL)
-            {
-                token->push_char(token, current_char);
-                token->type = EXPONENTA;
-            }
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->push_char(token, current_char);
-                token->type = IDENTIFIER;
-            }
-            break;
-        case 'p':
-            if (token->type == WHITE_SPACE)
-            {
-                token->type = IDENTIFIER;
-                token->push_char(token, current_char);
-            }
-            else if (token->type == POSSIBLE_KEYWORD)
-            {
-                token->push_char(token, current_char);
-                token->type = KEYWORD_p;
-            }
-            else if (token->type == IDENTIFIER ||
-                     token->type == KEYWORD)
-            {
-                token->push_char(token, current_char);
-            }
-            else if (token->type == KEYWORD_h)
-            {
-                token->push_char(token, current_char);
-                token->type = KEYWORD;
-                stack->push(stack, token);
-                token->reset(&token);
-            }
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->push_char(token, current_char);
-                token->type = IDENTIFIER;
-            }
-            break;
-
-        case 'h':
-            if (token->type == WHITE_SPACE)
-            {
-                token->push_char(token, current_char);
-                token->type = IDENTIFIER;
-            }
-            else if (
-                token->type == IDENTIFIER ||
-                token->type == KEYWORD)
-            {
-                token->push_char(token, current_char);
-            }
-            else if (token->type == KEYWORD_p)
-            {
-                token->push_char(token, current_char);
-                token->type = KEYWORD_h;
-            }
-            else
-            {
-                stack->push(stack, token);
-                token->reset(&token);
-                token->push_char(token, current_char);
-                token->type = IDENTIFIER;
-            }
-            break;
+          scan_identifier(current_char);
+        break;
         }
     }
+
     input_node_t *node = stack->head;
 
     while (node)

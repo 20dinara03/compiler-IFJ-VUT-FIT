@@ -17,4 +17,7 @@ enum ERRORS
 /* Program structures structure */
 typedef struct{
    input_stack_t *queue;
+   FILE* src;
 } program_t;
+
+program_t program;

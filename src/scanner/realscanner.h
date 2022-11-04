@@ -12,6 +12,5 @@
 // }
 
 void Scan(FILE *file);
-scanner read_numbers(char *char);
 
 #endif
