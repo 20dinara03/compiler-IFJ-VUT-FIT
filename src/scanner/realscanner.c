@@ -5,12 +5,54 @@
  * @version 0.1
  */
 #include "realscanner.h"
-#include "input_stack.h"
-#include "../main.h"
 
-token_t* scan_number(char cur_char)
+void check_identifier(token_t *token)
 {
-    token_t* token = init_token();
+    if (strcmp(token->text, "if") == 0)
+    {
+        token->type = KEYWORD_IF;
+    }
+    else if (strcmp(token->text, "else") == 0)
+    {
+        token->type = KEYWORD_ELSE;
+    }
+    else if (strcmp(token->text, "function") == 0)
+    {
+        token->type = KEYWORD_FUNCTION;
+    }
+    else if (strcmp(token->text, "float") == 0 || strcmp(token->text, "?float") == 0)
+    {
+        token->type = KEYWORD_FLOAT;
+    }
+    else if (strcmp(token->text, "string") == 0 || strcmp(token->text, "?string") == 0)
+    {
+        token->type = KEYWORD_STRING;
+    }
+    else if (strcmp(token->text, "int") == 0 || strcmp(token->text, "?int") == 0)
+    {
+        token->type = KEYWORD_INT;
+    }
+    else if (strcmp(token->text, "null") == 0)
+    {
+        token->type = KEYWORD_NULL;
+    }
+    else if (strcmp(token->text, "return") == 0)
+    {
+        token->type = KEYWORD_RETURN;
+    }
+    else if (strcmp(token->text, "void") == 0)
+    {
+        token->type = KEYWORD_VOID;
+    }
+    else if (strcmp(token->text, "while") == 0)
+    {
+        token->type = KEYWORD_WHILE;
+    }
+}
+
+token_t *scan_number(char cur_char)
+{
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = INT_LITERAL;
     bool token_end = false;
@@ -19,48 +61,49 @@ token_t* scan_number(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-          case '0'...'9':
-          token->push_char(token, current);
-          if (token->type == EXPONENTA || token->type == EXPONENTAL_OPERATOR)
-          {
-            token->type = DOUBLE_LITERAL;
-          }
-          break;
-          case '.':
-          if (token->type == INT_LITERAL)
-          {
+        case '0' ... '9':
             token->push_char(token, current);
-            token->type = DOUBLE_LITERAL;
-          }
-          break;
-          case 'E':
-          case 'e':
-          if (token->type == DOUBLE_LITERAL)
-          {
-            token->push_char(token, current);
-            token->type = EXPONENTA;
-          }
-          break;
-          case '+':
-          case '-':
-          if(token->type == EXPONENTA)
-          {
-            token->push_char(token, current);
-            token->type = EXPONENTAL_OPERATOR;
-          }
-          break;
-          default:
-          token_end = true;
+            if (token->type == EXPONENTA || token->type == EXPONENTAL_OPERATOR)
+            {
+                token->type = DOUBLE_LITERAL;
+            }
+            break;
+        case '.':
+            if (token->type == INT_LITERAL)
+            {
+                token->push_char(token, current);
+                token->type = DOUBLE_LITERAL;
+            }
+            break;
+        case 'E':
+        case 'e':
+            if (token->type == DOUBLE_LITERAL)
+            {
+                token->push_char(token, current);
+                token->type = EXPONENTA;
+            }
+            break;
+        case '+':
+        case '-':
+            if (token->type == EXPONENTA)
+            {
+                token->push_char(token, current);
+                token->type = EXPONENTAL_OPERATOR;
+            }
+            break;
+        default:
+            fseek(program.src, -1, SEEK_CUR);
+            token_end = true;
         }
     }
-    return(token);
+    return (token);
 }
 
-token_t* scan_identifier(char cur_char)
+token_t *scan_identifier(char cur_char)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = IDENTIFIER;
     bool token_end = false;
@@ -69,24 +112,26 @@ token_t* scan_identifier(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case 'A'... 'Z':
-            case 'a'...'z':
-            case '_':
-            case '0'...'9':
-             token->push_char(token, current);
+        case 'A' ... 'Z':
+        case 'a' ... 'z':
+        case '_':
+        case '0' ... '9':
+            token->push_char(token, current);
             break;
-            default:
+        default:
+            check_identifier(token);
+            fseek(program.src, -1, SEEK_CUR);
             token_end = true;
         }
     }
-  return(token);
+    return (token);
 }
 
-token_t* scan_variable_identifier(char cur_char)
+token_t *scan_variable_identifier(char cur_char)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = VARIABLE_IDENTIFIER;
     bool token_end = false;
@@ -95,24 +140,25 @@ token_t* scan_variable_identifier(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case 'A'... 'Z':
-            case 'a'...'z':
-            case '_':
-            case '0'...'9':
-             token->push_char(token, current);
+        case 'A' ... 'Z':
+        case 'a' ... 'z':
+        case '_':
+        case '0' ... '9':
+            token->push_char(token, current);
             break;
-            default:
+        default:
+            fseek(program.src, -1, SEEK_CUR);
             token_end = true;
         }
     }
-  return(token);
+    return (token);
 }
 
-token_t* scan_head(char cur_char)
+token_t *scan_head(char cur_char)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = POSSIBLE_HEAD;
     bool token_end = false;
@@ -121,56 +167,58 @@ token_t* scan_head(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case '?':
+        case '?':
             if (token->type == POSSIBLE_HEAD)
             {
-            token->push_char(token, current);
-            token->type =HEAD;
+                token->push_char(token, current);
+                token->type = HEAD;
             }
             break;
-            case 'p':
+        case 'p':
             if (token->type == HEAD)
             {
-             token->push_char(token, current);
-             token->type =KEYWORD_p;
+                token->push_char(token, current);
+                token->type = KEYWORD_p;
             }
             else if (token->type == KEYWORD_h)
             {
-             token->push_char(token, current);
-             token->type =HEAD;
-             token_end = true;
+                token->push_char(token, current);
+                token->type = HEAD;
+                token_end = true;
             }
             break;
-            case 'h':
+        case 'h':
             if (token->type == KEYWORD_p)
             {
-             token->push_char(token, current);
-             token->type =KEYWORD_h;
+                token->push_char(token, current);
+                token->type = KEYWORD_h;
             }
             break;
-            case '=':
+        case '=':
             if (token->type == POSSIBLE_HEAD)
             {
-             token->push_char(token, current);
-             token->type =OPERATOR_LESS_OR_EQUAL;
-             token_end = true;
+                token->push_char(token, current);
+                token->type = OPERATOR_LESS_OR_EQUAL;
+                token_end = true;
             }
-            default:
+            break;
+        default:
             if (token->type == POSSIBLE_HEAD)
             {
                 token->type = OPERATOR_LESS;
             }
+            fseek(program.src, -1, SEEK_CUR);
             token_end = true;
         }
     }
-  return(token);
+    return (token);
 }
 
-token_t* scan_end(char cur_char)
+token_t *scan_end(char cur_char)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = POSSIBLE_END;
     bool token_end = false;
@@ -179,30 +227,36 @@ token_t* scan_end(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case '>':
+        case '>':
             if (token->type == POSSIBLE_END)
             {
-             token->push_char(token, current);
-             token->type = END;
-             token_end = true;
+                token->push_char(token, current);
+                token->type = END;
+                token_end = true;
             }
             break;
-            case 'A'...'Z':
-            case 'a'...'z':
+        case 'A' ... 'Z':
+        case 'a' ... 'z':
             token->push_char(token, current);
             token->type = TYPE_IDENTIFIER;
-            default:
+            break;
+        default:
+            if (token->type == TYPE_IDENTIFIER)
+            {
+                check_identifier(token);
+            }
+            fseek(program.src, -1, SEEK_CUR);
             token_end = true;
         }
     }
-  return(token);
+    return (token);
 }
 
-token_t* scan_comment(char cur_char)
+token_t *scan_comment(char cur_char)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = POSSIBLE_COMMENT;
     bool token_end = false;
@@ -211,44 +265,46 @@ token_t* scan_comment(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case '/':
+        case '/':
             if (token->type == POSSIBLE_COMMENT)
             {
-            token->push_char(token, current);
-            token->type = COMMENT_LINE;
+                token->push_char(token, current);
+                token->type = COMMENT_LINE;
             }
             else if (token->type == POSSIBLE_COMMENT_END)
             {
                 token->push_char(token, current);
                 token->type = COMMENT;
+                fseek(program.src, -1, SEEK_CUR);
                 token_end = true;
             }
             break;
-            case '*':
+        case '*':
             if (token->type == POSSIBLE_COMMENT)
             {
-             token->push_char(token, current);
-             token->type = COMMENT;
+                token->push_char(token, current);
+                token->type = COMMENT;
             }
             else if (token->type == COMMENT)
             {
-             token->push_char(token, current);
-             token->type = POSSIBLE_COMMENT_END; 
+                token->push_char(token, current);
+                token->type = POSSIBLE_COMMENT_END;
             }
             break;
-            case '\n':
-            case '\r':
+        case '\n':
+        case '\r':
             if (token->type == COMMENT_LINE)
             {
+                fseek(program.src, -1, SEEK_CUR);
                 token_end = true;
             }
             break;
-            default:
+        default:
             if (token->type == POSSIBLE_COMMENT)
             {
-                token->type=OPERATOR_DIVIDE;
+                token->type = OPERATOR_DIVIDE;
                 token_end = true;
             }
             else if (token->type == POSSIBLE_COMMENT_END)
@@ -256,18 +312,18 @@ token_t* scan_comment(char cur_char)
                 token->push_char(token, current);
                 token->type = COMMENT;
             }
-            else 
+            else
             {
                 token->push_char(token, current);
             }
         }
     }
-  return(token);
+    return (token);
 }
 
-token_t* scan_operator(char cur_char,types_t type)
+token_t *scan_operator(char cur_char, types_t type)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = type;
     bool token_end = false;
@@ -276,15 +332,15 @@ token_t* scan_operator(char cur_char,types_t type)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case'=':
+        case '=':
             if (token->type == OPERATOR_NOT)
             {
-             token->push_char(token, current);
-             token->type = OPERATOR_NOT_EQUAL;
+                token->push_char(token, current);
+                token->type = OPERATOR_NOT_EQUAL;
             }
-            else if (token->type = OPERATOR_NOT_EQUAL)
+            else if (token->type == OPERATOR_NOT_EQUAL)
             {
                 token->push_char(token, current);
                 token_end = true;
@@ -300,7 +356,7 @@ token_t* scan_operator(char cur_char,types_t type)
                 token->push_char(token, current);
             }
             break;
-            case '|':
+        case '|':
             if (token->type == POSSIBLE_OR)
             {
                 token->push_char(token, current);
@@ -308,7 +364,7 @@ token_t* scan_operator(char cur_char,types_t type)
                 token_end = true;
             }
             break;
-            case '&':
+        case '&':
             if (token->type == POSSIBLE_AND)
             {
                 token->push_char(token, current);
@@ -316,16 +372,17 @@ token_t* scan_operator(char cur_char,types_t type)
                 token_end = true;
             }
             break;
-            default:
+        default:
+            fseek(program.src, -1, SEEK_CUR);
             token_end = true;
         }
     }
-  return(token);
+    return (token);
 }
 
-token_t* scan_string(char cur_char)
+token_t *scan_string(char cur_char)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = STRING_LITERAL;
     bool token_end = false;
@@ -334,22 +391,22 @@ token_t* scan_string(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case '"':
-             token->push_char(token, current);
-             token_end = true;
+        case '"':
+            token->push_char(token, current);
+            token_end = true;
             break;
-            default:
+        default:
             token->push_char(token, current);
         }
     }
-  return(token);
+    return (token);
 }
 
-token_t* scan_slash(char cur_char)
+token_t *scan_slash(char cur_char)
 {
-    token_t* token = init_token();
+    token_t *token = init_token();
     token->push_char(token, cur_char);
     token->type = OPERATOR_SLASH;
     bool token_end = false;
@@ -358,220 +415,196 @@ token_t* scan_slash(char cur_char)
     {
         char current = fgetc(program.src);
 
-        switch(current)
+        switch (current)
         {
-            case 'n':
-            case 'r':
-            case 't':
-            case '\\':
-            case '$':
-            case '"':
+        case 'n':
+        case 'r':
+        case 't':
+        case '\\':
+        case '$':
+        case '"':
             if (token->type == OPERATOR_SLASH)
             {
-            token->push_char(token, current);
-            token->type = ESCAPE_SEQUENCE;
-            token_end = true;
+                token->push_char(token, current);
+                token->type = ESCAPE_SEQUENCE;
+                token_end = true;
             }
             break;
-            case 'x':
+        case 'x':
             if (token->type == OPERATOR_SLASH)
             {
                 token->push_char(token, current);
                 token->type = HEXADECIMAL_NUMBER_X;
             }
-            case 'A'... 'F':
-            case 'a'...'f':
-            case '8'...'9':
-             if (token->type == HEXADECIMAL_NUMBER_X)
-             {
-              token->push_char(token, current);
-              token->type = HEXADECIMAL_NUMBER_1;
-             }
-             else if (token->type == HEXADECIMAL_NUMBER_1)
-             {
-              token->push_char(token, current);
-              token->type = HEXADECIMAL_NUMBER;
-              token_end = true;
-             }
             break;
-            case '0'...'7':
+        case 'A' ... 'F':
+        case 'a' ... 'f':
+        case '8' ... '9':
             if (token->type == HEXADECIMAL_NUMBER_X)
-             {
-              token->push_char(token, current);
-              token->type = HEXADECIMAL_NUMBER_1;
-             }
-             else if (token->type == HEXADECIMAL_NUMBER_1)
-             {
-              token->push_char(token, current);
-              token->type = HEXADECIMAL_NUMBER;
-              token_end = true;
-             }
-             else if (token->type == OPERATOR_SLASH)
-             {
+            {
+                token->push_char(token, current);
+                token->type = HEXADECIMAL_NUMBER_1;
+            }
+            else if (token->type == HEXADECIMAL_NUMBER_1)
+            {
+                token->push_char(token, current);
+                token->type = HEXADECIMAL_NUMBER;
+                token_end = true;
+            }
+            break;
+        case '0' ... '7':
+            if (token->type == HEXADECIMAL_NUMBER_X)
+            {
+                token->push_char(token, current);
+                token->type = HEXADECIMAL_NUMBER_1;
+            }
+            else if (token->type == HEXADECIMAL_NUMBER_1)
+            {
+                token->push_char(token, current);
+                token->type = HEXADECIMAL_NUMBER;
+                token_end = true;
+            }
+            else if (token->type == OPERATOR_SLASH)
+            {
                 token->push_char(token, current);
                 token->type = OCTAVE_NUMBER_1;
-             }
-             else if (token->type == OCTAVE_NUMBER_1)
-             {
+            }
+            else if (token->type == OCTAVE_NUMBER_1)
+            {
                 token->push_char(token, current);
                 token->type = OCTAVE_NUMBER_2;
-             }
-             else if (token->type == OCTAVE_NUMBER_2)
-             {
+            }
+            else if (token->type == OCTAVE_NUMBER_2)
+            {
                 token->push_char(token, current);
                 token->type = OCTAVE_NUMBER;
                 token_end = true;
-             }
-            default:
+            }
+            break;
+        default:
+            fseek(program.src, -1, SEEK_CUR);
             token_end = true;
         }
     }
-  return(token);
+    return (token);
 }
 
-void Scan(FILE *file)
+token_t *Scan()
 {
-    /* Setting up default values for stacks & tokens */
-
-    input_stack_t *stack = init_input_stack();
-    token_t *token = init_token();
-
     /*Reading 1 character from a file until we reach the end of it*/
     char current_char;
-    while (!feof(file))
+    while (!feof(program.src))
     {
-        current_char = fgetc(file);
+        current_char = fgetc(program.src);
 
         switch (current_char)
         {
         case '*':
-         token->type = OPERATOR_MULTIPLY;
-         scan_operator(current_char, token->type);
-        break;
 
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_MULTIPLY);
+            break;
         case '/':
-         scan_comment(current_char);
-        break;
-
+            program.scanner->current_token = scan_comment(current_char);
+            break;
         case '"':
-         scan_string(current_char);
-        break;
-
+            program.scanner->current_token = scan_string(current_char);
+            break;
         case '+':
-         token->type = OPERATOR_PLUS;
-         scan_operator(current_char, token->type);
-        break;
-
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_PLUS);
+            break;
         case '-':
-         token->type = OPERATOR_MINUS;
-         scan_operator(current_char, token->type);
-        break;
-
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_MINUS);
+            break;
         case '(':
-         token->type = OPERATOR_LEFT_BRACKET;
-         scan_operator(current_char, token->type);
-        break;
-
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_LEFT_BRACKET);
+            break;
         case ')':
-         token->type = OPERATOR_RIGHT_BRACKET;
-         scan_operator(current_char, token->type);
-        break;
-        
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_RIGHT_BRACKET);
+            break;
         case ':':
-         token->type = OPERATOR_COLON;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_COLON);
+            break;
 
         case ',':
-         token->type = OPERATOR_COMMA;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_COMMA);
+            break;
 
         case '{':
-         token->type = OPERATOR_LEFT_CURLY_BRACKET;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_LEFT_CURLY_BRACKET);
+            break;
 
         case '}':
-         token->type = OPERATOR_RIGHT_CURLY_BRACKET;
-         scan_operator(current_char, token->type);
-        break;
-
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_RIGHT_CURLY_BRACKET);
+            break;
         case ';':
-         token->type = OPERATOR_SEMICOLON;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_SEMICOLON);
+            break;
 
         case '\\':
-         scan_slash(current_char);
-        break;
+            program.scanner->current_token = scan_slash(current_char);
+            break;
 
         case '.':
-         token->type = OPERATOR_POINT;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_POINT);
+            break;
 
         case '0' ... '9':
-         scan_number(current_char);
-        break;
+
+            program.scanner->current_token = scan_number(current_char);
+            break;
 
         case '<':
-         scan_head(current_char);
-        break;
+            program.scanner->current_token = scan_head(current_char);
+            break;
 
         case '>':
-         token->type = OPERATOR_GREATER;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_GREATER);
+            break;
 
         case '?':
-         scan_end(current_char);
-        break;
+            program.scanner->current_token = scan_end(current_char);
+            break;
 
         case '=':
-         token->type = OPERATOR_EQUAL;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_EQUAL);
+            break;
 
         case '!':
-         token->type = OPERATOR_NOT;
-         scan_operator(current_char, token->type);
-        break;
+            program.scanner->current_token = scan_operator(current_char, OPERATOR_NOT);
+            break;
 
         case '|':
-         token->type = POSSIBLE_OR;
-         scan_operator(current_char, token->type);
-        break;
-
+            program.scanner->current_token = scan_operator(current_char, POSSIBLE_OR);
+            break;
         case '&':
-         token->type = POSSIBLE_AND;
-         scan_operator(current_char, token->type);
-        break;
-
-        case 'A'...'Z':
-        case 'a'...'z':
-          scan_identifier(current_char);
-        break;
-
-        case '$': 
-          scan_variable_identifier(current_char);
-        break;
-
+            program.scanner->current_token = scan_operator(current_char, POSSIBLE_AND);
+            break;
+        case 'A' ... 'Z':
+        case 'a' ... 'z':
+            program.scanner->current_token = scan_identifier(current_char);
+            break;
+        case '$':
+            program.scanner->current_token = scan_variable_identifier(current_char);
+            break;
         case '_':
-          scan_identifier(current_char);
-        break;
+            program.scanner->current_token = scan_identifier(current_char);
+            break;
+        default:
+            continue;
         }
+
+        return program.scanner->current_token;
     }
+    program.scanner->current_token = NULL;
+    return NULL;
+}
 
-    input_node_t *node = stack->head;
+scanner_t *init_scanner()
+{
+    scanner_t *scanner = NULL;
+    memo_allocate(scanner, scanner_t, 1);
 
-    while (node)
-    {
-        node->token->debug(node->token);
-        node = node->next;
-    }
+    scanner->get_next_token = Scan;
 
-    /* clean up */
-    stack->free(&stack);
-    token->free(&token);
+    return scanner;
 }

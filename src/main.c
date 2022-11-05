@@ -11,27 +11,31 @@
 #include "./common/error.h"
 #include "./scanner/realscanner.h"
 
-
 int main(int argc, char *argv[])
-{ 
+{
     if (argc != 2)
     {
         fprintf(stderr, "Wrong number of arguments\n");
         return EXIT_FAILURE;
     }
 
-    FILE *fp; // file pointer
-
     // checking file
-    if ((fp = fopen(argv[1], FILEMODE)) == NULL)
+    if ((program.src = fopen(argv[1], FILEMODE)) == NULL)
     {
         fprintf(stderr, "Cannot open file\n");
         return EXIT_FAILURE;
     }
 
-    Scan(fp);
+    program.scanner = init_scanner();
 
-    fclose(fp);
+    do
+    {
+        program.scanner->get_next_token();
+        if (program.scanner->current_token != NULL)
+            program.scanner->current_token->debug(program.scanner->current_token);
+    } while (program.scanner->current_token != NULL);
+
+    fclose(program.src);
 
     return 0;
 }

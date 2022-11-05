@@ -1,16 +1,19 @@
 
 #ifndef SCANNER
 #define SCANNER
-#include "token.h"
+#include "input_stack.h"
 
 // typedef struct scanner;
 
-// struct scanner
-// {
-// token* current_token := NULL
-// token* next_token() := token* fucntion()
-// }
+typedef struct
+{
+    token_t *current_token;
+    token_t* (*get_next_token)();
+} scanner_t;
 
-void Scan(FILE *file);
+
+scanner_t* init_scanner();
+
+#include "../common/error.h"
 
 #endif
