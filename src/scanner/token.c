@@ -52,7 +52,17 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "HEXADECIMAL_NUMBER",
     "OCTAVE_NUMBER",
     "OCTAVE_NUMBER_1",
-    "OCTAVE_NUMBER_2"};
+    "OCTAVE_NUMBER_2",
+    "KEYWORD_IF",
+    "KEYWORD_ELSE",
+    "KEYWORD_FLOAT",
+    "KEYWORD_FUNCTION",
+    "KEYWORD_INT",
+    "KEYWORD_NULL",
+    "KEYWORD_RETURN",
+    "KEYWORD_VOID",
+    "KEYWORD_WHILE",
+    "KEYWORD_STRING"};
 
 void push_char_in_token(token_t *self, char ch)
 {
