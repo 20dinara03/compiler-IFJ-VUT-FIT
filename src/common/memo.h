@@ -7,7 +7,7 @@
 #define memo_allocate(target, type, size)                           \
     do                                                              \
     {                                                               \
-        if ((target = (type *)malloc(sizeof(type) * size)) == NULL) \
+        if ((target = (type *)calloc(size, sizeof(type) * size)) == NULL) \
         {                                                           \
             /* error handler */                                     \
         }                                                           \
