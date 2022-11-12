@@ -17,9 +17,9 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 file(GLOB_RECURSE tests_SRC
-        "tests/*.cpp"
-        "tests/*.cc"
-)
+        "tests/unit/*.cpp"
+        "tests/unit/*.cc"
+        )
 
 add_executable(
         unit_tests
@@ -34,13 +34,21 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(unit_tests)
 
-
 file(GLOB_RECURSE code_SRC
         "src/**/*.h"
         "src/**/*.c"
-)
+        "src/*.h"
+        "src/*.c"
+        )
 
 add_executable(
         IFJ2022
         ${code_SRC}
 )
+
+set_target_properties( IFJ2022
+        PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+        )
