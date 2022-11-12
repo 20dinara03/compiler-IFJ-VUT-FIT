@@ -36,8 +36,8 @@ gtest_discover_tests(unit_tests)
 
 
 file(GLOB_RECURSE code_SRC
-        "src/*.h"
-        "src/*.c"
+        "src/**/*.h"
+        "src/**/*.c"
 )
 
 add_executable(

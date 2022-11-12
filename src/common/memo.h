@@ -27,3 +27,22 @@
             /* error handler */                               \
         }                                                     \
     } while (0)
+
+/**
+ * @brief macro declaration for freeing memory
+ *
+ * @param type type of the pointer
+ */
+#define dec_memo_free(type) \
+    void free_##type(type *target);
+
+/**
+ * @brief macro creates function to free memory
+ *
+ * @param type type of pointer
+ */
+#define def_memo_free(type)  \
+    void free_##type(type *target) \
+    {                                \
+        free(target);                \
+    }

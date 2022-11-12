@@ -605,6 +605,9 @@ scanner_t *init_scanner()
     memo_allocate(scanner, scanner_t, 1);
 
     scanner->get_next_token = Scan;
+    scanner->free = free_scanner_t;
 
     return scanner;
 }
+
+def_memo_free(scanner_t)
