@@ -62,7 +62,8 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "KEYWORD_RETURN",
     "KEYWORD_VOID",
     "KEYWORD_WHILE",
-    "KEYWORD_STRING"};
+    "KEYWORD_STRING"
+};
 
 void push_char_in_token(token_t *self, char ch)
 {
@@ -91,6 +92,11 @@ void debug_token(token_t *self)
     printf("( %s : %s )\n", TOKEN_TYPE_TO_STRING[self->type], self->text);
 }
 
+const char* token_type_to_string(types_t type)
+{
+    return TOKEN_TYPE_TO_STRING[type];
+}
+
 void free_token(token_t **self)
 {
     free((*self)->text);
@@ -100,7 +106,6 @@ void free_token(token_t **self)
 
 token_t *init_token()
 {
-
     token_t *token = NULL;
 
     memo_allocate(token, token_t, 1);
@@ -110,6 +115,7 @@ token_t *init_token()
     token->push_char = push_char_in_token;
     token->reset = reset_token;
     token->debug = debug_token;
+    token->decode = token_type_to_string;
     token->free = free_token;
 
     return token;

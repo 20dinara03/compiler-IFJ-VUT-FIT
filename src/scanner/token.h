@@ -80,6 +80,7 @@ struct token_t
 {
     string text;
     types_t type;
+    const char* (*decode)(types_t type);
     size_t offsetX;
     size_t offsetY;
     /**
@@ -101,6 +102,7 @@ struct token_t
      * @brief Prints token in console, in (type : value) format
      *
      * @param token pointer to token_t
+     * @param buffer string buffer
      */
     void (*debug)(token_t *);
     /**

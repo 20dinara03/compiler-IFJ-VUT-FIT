@@ -1,3 +1,6 @@
+#ifndef MEMO
+#define MEMO
+
 /**
  * @brief Save memory allocator
  *
@@ -46,3 +49,5 @@
     {                                \
         free(target);                \
     }
+
+#endif //MEMO

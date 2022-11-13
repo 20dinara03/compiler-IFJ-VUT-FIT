@@ -1,11 +1,12 @@
 #include "error.h"
-
-program_t program;
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @brief Program clean up function
  */
 void free_program(){
+    // TODO: move to memo.h !!!
     // free_queue(program.queue, free_token);
 }
 
@@ -46,6 +47,9 @@ void exit_failure(int error_code)
             break;
         case INTERNAL_COMPILER_ERR:
             fprintf(stderr, "Internal compiler error.");
+            break;
+        default:
+            fprintf(stderr, "Unknown error.");
             break;
     }
     exit(error_code);

@@ -7,10 +7,9 @@
  *      Dinara Garipova     | xgarip00
  *      Kateryna Zdebska    | xzdebs00
  */
+#include <stdio.h>
 #include "./main.h"
-#include "./common/error.h"
-#include "./scanner/realscanner.h"
-#include "./common/symbol-table.h"
+#include "./common/program.h"
 
 int main(int argc, char *argv[])
 {
@@ -29,6 +28,13 @@ int main(int argc, char *argv[])
 
     program.scanner = init_scanner();
 
+    //** Parser simulation for scanner **//
+    do
+    {
+        program.scanner->get_next_token();
+    } while (program.scanner->current_token != NULL);
+
+    program.scanner->free(program.scanner);
     fclose(program.src);
 
     return 0;

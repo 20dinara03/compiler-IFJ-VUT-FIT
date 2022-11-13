@@ -4,7 +4,11 @@
  * @brief Real code scanner
  * @version 0.1
  */
+#include <stdio.h>
 #include "realscanner.h"
+#include "../common/program.h"
+
+define_logging(scanner)
 
 void check_identifier(token_t *token)
 {
@@ -500,7 +504,6 @@ token_t *Scan()
         switch (current_char)
         {
         case '*':
-
             program.scanner->current_token = scan_operator(current_char, OPERATOR_MULTIPLY);
             break;
         case '/':
@@ -593,6 +596,12 @@ token_t *Scan()
             continue;
         }
 
+        char* string;
+        if(0 <= asprintf(&string, "( %s : %s )\n", program.scanner->current_token->decode(program.scanner->current_token->type),
+                        program.scanner->current_token->text)) {
+            program.scanner->logger->debug(program.scanner->logger, string);
+            if (string != NULL) free(string);
+        }
         return program.scanner->current_token;
     }
     program.scanner->current_token = NULL;
@@ -605,9 +614,17 @@ scanner_t *init_scanner()
     memo_allocate(scanner, scanner_t, 1);
 
     scanner->get_next_token = Scan;
-    scanner->free = free_scanner_t;
+    scanner->free = destruct_scanner_t;
+    scanner->logger = get_logging(scanner);
 
     return scanner;
 }
 
-def_memo_free(scanner_t)
+void destruct_scanner_t(scanner_t *scanner)
+{
+    if (scanner != NULL)
+    {
+        if (scanner->logger != NULL) free_scanner_logging(scanner->logger);
+        free(scanner);
+    }
+}

@@ -1,9 +1,8 @@
 #ifndef ERROR
 #define ERROR
 
-#include "../scanner/token.h"
-#include "../scanner/input_stack.h"
-#include "../scanner/realscanner.h"
+void free_program();
+void exit_failure(int error_code);
 
 enum ERRORS
 {
@@ -17,15 +16,5 @@ enum ERRORS
     SEMANIC_OTHER_ERR,
     INTERNAL_COMPILER_ERR = 99
 };
-
-/* Program structures structure */
-typedef struct
-{
-    input_stack_t *queue;
-    scanner_t *scanner;
-    FILE *src;
-} program_t;
-
-program_t program;
 
 #endif
