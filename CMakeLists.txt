@@ -17,8 +17,11 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 file(GLOB_RECURSE tests_SRC
-        "tests/unit/*.cpp"
-        "tests/unit/*.cc"
+        "tests/unit/**/*.cpp"
+        "tests/unit/**/*.cc"
+        "src/**/*.h"
+        "src/**/*.c"
+        "src/*.h"
         )
 
 add_executable(

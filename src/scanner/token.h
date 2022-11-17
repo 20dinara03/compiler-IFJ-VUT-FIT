@@ -1,5 +1,5 @@
-#ifndef TOKEN
-#define TOKEN
+#ifndef TOKEN_H
+#define TOKEN_H
 
 #include "../main.h"
 
@@ -120,4 +120,4 @@ struct token_t
  */
 token_t *init_token();
 
-#endif /* TOKEN */
+#endif /* TOKEN_H */

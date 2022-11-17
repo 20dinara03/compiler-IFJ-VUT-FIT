@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
+        // TODO: separate function, move exit code to error.{c,h}
         fprintf(stderr, "Wrong number of arguments\n");
         return EXIT_FAILURE;
     }
@@ -22,20 +23,18 @@ int main(int argc, char *argv[])
     // checking file
     if ((program.src = fopen(argv[1], FILEMODE)) == NULL)
     {
+        // TODO: separate function, move exit code to error.{c,h}
         fprintf(stderr, "Cannot open file\n");
         return EXIT_FAILURE;
     }
 
     program.scanner = init_scanner();
+    program.parser = init_parser(program.scanner);
 
-    //** Parser simulation for scanner **//
-    do
-    {
-        program.scanner->get_next_token();
-    } while (program.scanner->current_token != NULL);
+    program.parser->parse(program.parser);
 
-    program.scanner->free(program.scanner);
+    program.parser->free(program.parser);
+
     fclose(program.src);
-
     return 0;
 }
