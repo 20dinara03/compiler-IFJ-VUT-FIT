@@ -596,9 +596,9 @@ token_t *Scan()
             continue;
         }
 
-        char* string;
-        if(0 <= asprintf(&string, "( %s : %s )\n", program.scanner->current_token->decode(program.scanner->current_token->type),
-                        program.scanner->current_token->text)) {
+        char* string = malloc(sizeof(char) * 2048);
+        if(0 <= sprintf(string, "( %s : %s )\n", program.scanner->current_token->decode(program.scanner->current_token->type),
+            program.scanner->current_token->text)) {
             program.scanner->logger->debug(program.scanner->logger, string);
             if (string != NULL) free(string);
         }
