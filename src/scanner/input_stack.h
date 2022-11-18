@@ -2,6 +2,7 @@
 #define INPUT_STACK
 
 #include "token.h"
+#include "../common/memo.h"
 
 typedef struct input_node_t input_node_t;
 typedef struct input_stack_t input_stack_t;

@@ -13,6 +13,4 @@ typedef struct program_t {
     FILE *src;
 } program_t;
 
-program_t program;
-
 #endif //PROGRAM_H

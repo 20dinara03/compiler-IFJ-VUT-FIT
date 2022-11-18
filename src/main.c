@@ -9,7 +9,6 @@
  */
 #include <stdio.h>
 #include "./main.h"
-#include "./common/program.h"
 
 int main(int argc, char *argv[])
 {

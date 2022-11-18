@@ -1,7 +1,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include "../main.h"
+#include "../common/types.h"
+#include <stdlib.h>
 
 /* token types constants */
 typedef enum

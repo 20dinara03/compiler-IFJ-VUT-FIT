@@ -1,5 +1,6 @@
 #include "parser.h"
 #include <string.h>
+#include <stdio.h>
 
 #define token self->scanner->current_token
 #define next_token safeNextToken(self)
@@ -258,7 +259,7 @@ bool UpperExpression(parser_t *self) {
         parseStringLiteral(self) OR parseVariableIdentifier(self) OR token_is("null") OR token_is("===")
         OR token_is("==") OR token_is("!==") OR token_type_is("INT_LITERAL") OR token_type_is("DOUBLE_LITERAL")
         OR token_is("!=") OR token_is(">=") OR token_is("<=") OR token_is(">")
-        OR token_is("<") OR token_is("+") OR token_is("-") OR token_is("*") OR token_is("/") OR token_is("%")
+        OR token_is("<") OR token_is("+") OR token_is("-") OR token_is("*") OR token_is("/")
         OR token_is("&&") OR token_is("||") OR token_is("!") OR parseParenthesis(self)
     ) {
         UpperExpression(self); // cycle all other expression

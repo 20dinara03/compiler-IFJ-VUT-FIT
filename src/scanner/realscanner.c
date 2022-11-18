@@ -6,7 +6,7 @@
  */
 #include <stdio.h>
 #include "realscanner.h"
-#include "../common/program.h"
+#include "../main.h"
 
 define_logging(scanner)
 

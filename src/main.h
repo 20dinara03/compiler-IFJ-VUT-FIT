@@ -7,9 +7,10 @@
 #include <stdbool.h>
 
 #include "./common/memo.h"
+#include "./common/program.h"
 
 #define FILEMODE "r"
 
-typedef char *string;
+program_t program;
 
 #endif /* MAIN */

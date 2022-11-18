@@ -45,7 +45,7 @@ file(GLOB_RECURSE code_SRC
 add_executable(
         IFJ2022
         ${code_SRC}
-)
+        src/common/types.h)
 
 set_target_properties( IFJ2022
         PROPERTIES

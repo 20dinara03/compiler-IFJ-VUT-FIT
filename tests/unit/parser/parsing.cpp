@@ -30,8 +30,7 @@ protected:
     void SetUp() override {
         test.scanner = init_scanner();
         generator = (generator_t*) malloc(sizeof(generator_t));
-        generator->size = 0;
-        generator->index = 0;
+        generator->size = generator->index = 0;
         test.parser = init_parser(test.scanner);
         test.scanner->get_next_token = mockNextToken;
     }
