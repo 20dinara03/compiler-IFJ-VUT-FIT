@@ -56,5 +56,7 @@ bin/
 tmp/
 *.log
 .idea/
+.cmake
+.vscode
 cmake-build-debug/
 build/
