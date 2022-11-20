@@ -110,7 +110,9 @@ condition_else ::= ''
 condition_else ::= 'else' '{' statements '}'
 identifier_assignment ::= variable_identifier assignment
 assignment ::= '=' expression
-return ::= 'return' expression
+return ::= 'return' optional_expression
+optional_expression ::= ''
+optional_expression ::= expression
 expression ::= function_call
 type ::= '?int' 
 type ::= '?bool’ 
