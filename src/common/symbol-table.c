@@ -1,8 +1,8 @@
 #include "symbol-table.h"
 
-symbol_node_t *init_symbol_node(string name, string value, int type);
+symbol_node_t *init_symbol_node(string name, string value, types_t type);
 
-enum SYMBOL_TABLE_T symbol_table_insert(symbol_table_t *self, string name, string value, int type)
+enum SYMBOL_TABLE_T symbol_table_insert(symbol_table_t *self, string name, string value, types_t type)
 {
     symbol_node_t *node = self->top;
     if (self->top == NULL)
@@ -130,7 +130,7 @@ void free_symbol_table(symbol_table_t **self)
     }
 }
 
-symbol_node_t *init_symbol_node(string name, string value, int type)
+symbol_node_t *init_symbol_node(string name, string value, types_t type)
 {
     symbol_node_t *node = NULL;
     memo_allocate(node, symbol_node_t, 1);
@@ -144,11 +144,15 @@ symbol_node_t *init_symbol_node(string name, string value, int type)
     return node;
 }
 
-void push_scope(symbol_table_t **self)
+void push_scope(symbol_table_t **self, string name, types_t type)
 {
     symbol_table_t *new_scope = init_symbol_table();
+    memo_allocate(new_scope->scope_name,char,strlen(name));
+    strcpy(new_scope->scope_name,name);
+    new_scope->scope_type = type;
     new_scope->next = *self;
     *self = new_scope;
+
 }
 
 void pop_scope(symbol_table_t **self)
@@ -166,6 +170,8 @@ symbol_table_t *init_symbol_table()
 {
     symbol_table_t *table = NULL;
     memo_allocate(table, symbol_table_t, 1);
+    table->scope_type = NONE;
+    table->scope_name = NULL;
     table->top = NULL;
     table->next = NULL;
     table->insert = symbol_table_insert;

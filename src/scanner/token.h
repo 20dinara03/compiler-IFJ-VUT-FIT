@@ -44,6 +44,9 @@ typedef enum
     OPERATOR_COMMA,
     OPERATOR_LEFT_CURLY_BRACKET,
     OPERATOR_RIGHT_CURLY_BRACKET,
+    //extra types
+    VOID_LITERAL,
+    NONE,
 } types_t;
 
 

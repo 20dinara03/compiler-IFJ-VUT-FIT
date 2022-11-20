@@ -1,6 +1,7 @@
 #ifndef SYMBOL_TABLE
 #define SYMBOL_TABLE
 #include "../main.h"
+#include "../scanner/token.h"
 typedef struct symbol_table_t symbol_table_t;
 typedef struct symbol_node_t symbol_node_t;
 
@@ -19,7 +20,7 @@ struct symbol_node_t
     /*Variable's value*/
     string value;
     /*Variable's type*/
-    int type;
+    types_t type;
     /*Left node*/
     symbol_node_t *left;
     /*Right node*/
@@ -35,6 +36,10 @@ struct symbol_node_t
 /*Symbol table*/
 struct symbol_table_t
 {
+    /*Name of the scope*/
+    string scope_name;
+    /*Type of the scope, if it's a function*/
+    types_t scope_type;
     /*Symbol table's top scope*/
     symbol_node_t *top;
     /*Symbol table's outer scope*/
@@ -49,7 +54,7 @@ struct symbol_table_t
      *
      * @return Symbol table's code
      */
-    enum SYMBOL_TABLE_T (*insert)(symbol_table_t *, string, string, int);
+    enum SYMBOL_TABLE_T (*insert)(symbol_table_t *, string, string, types_t);
     /**
      * @brief Destructor for the symbol table, table will equal NULL
      *
@@ -61,7 +66,7 @@ struct symbol_table_t
      *
      * @param symbol_table_t pointer to a current symbol_table_t*
      */
-    void (*push_scope)(symbol_table_t **);
+    void (*push_scope)(symbol_table_t **,string, types_t);
     /**
      * @brief Pops scope from top of the stack, if the stack is empty, table = NULL
      *
