@@ -54,25 +54,25 @@ struct symbol_table_t
      *
      * @return Symbol table's code
      */
-    enum SYMBOL_TABLE_T (*insert)(symbol_table_t *, string, string, types_t);
+    enum SYMBOL_TABLE_T (*insert)(symbol_table_t *self, string var_name, string var_value, types_t var_type);
     /**
      * @brief Destructor for the symbol table, table will equal NULL
      *
      * @param symbol_table_t pointer to a current symbol_table_t*
      */
-    void (*free)(symbol_table_t **);
+    void (*free)(symbol_table_t **self);
     /**
      * @brief Adds scope on top of the stack
      *
      * @param symbol_table_t pointer to a current symbol_table_t*
      */
-    void (*push_scope)(symbol_table_t **,string, types_t);
+    void (*push_scope)(symbol_table_t **self,string scope_name, types_t scope_type);
     /**
      * @brief Pops scope from top of the stack, if the stack is empty, table = NULL
      *
      * @param symbol_table_t pointer to a current symbol_table_t*
      */
-    void (*pop_scope)(symbol_table_t **);
+    void (*pop_scope)(symbol_table_t **self);
     /**
      * @brief Finds variable node by name
      *
@@ -81,7 +81,7 @@ struct symbol_table_t
      *
      * @return symbol table's node from bst with the variable or NULL
      */
-    symbol_node_t *(*find)(symbol_table_t *, string);
+    symbol_node_t *(*find)(symbol_table_t *self, string var_name);
 };
 
 /**

@@ -1,5 +1,9 @@
+#ifndef ERROR
+#define ERROR
+
 #include "../scanner/token.h"
 #include "../scanner/input_stack.h"
+#include "../scanner/realscanner.h"
 
 enum ERRORS
 {
@@ -15,6 +19,13 @@ enum ERRORS
 };
 
 /* Program structures structure */
-typedef struct{
-   input_stack_t *queue;
+typedef struct
+{
+    input_stack_t *queue;
+    scanner_t *scanner;
+    FILE *src;
 } program_t;
+
+program_t program;
+
+#endif

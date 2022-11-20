@@ -3,7 +3,7 @@
 /* token types in string representation */
 const char *TOKEN_TYPE_TO_STRING[] = {
     "KEYWORD",
-    "OPERATOR",
+    "VARIABLE_IDENTIFIER",
     "IDENTIFIER",
     "STRING_LITERAL",
     "INT_LITERAL",
@@ -39,7 +39,30 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     "OPERATOR_COLON",
     "OPERATOR_COMMA",
     "OPERATOR_LEFT_CURLY_BRACKET",
-    "OPERATOR_RIGHT_CURLY_BRACKET"};
+    "OPERATOR_RIGHT_CURLY_BRACKET",
+    "EXPONENTAL_OPERATOR",
+    "OPERATOR_SLASH",
+    "HEAD",
+    "END",
+    "POSSIBLE_END",
+    "TYPE_IDENTIFIER",
+    "HEXADECIMAL_NUMBER_X",
+    "ESCAPE_SEQUENCE",
+    "HEXADECIMAL_NUMBER_1",
+    "HEXADECIMAL_NUMBER",
+    "OCTAVE_NUMBER",
+    "OCTAVE_NUMBER_1",
+    "OCTAVE_NUMBER_2",
+    "KEYWORD_IF",
+    "KEYWORD_ELSE",
+    "KEYWORD_FLOAT",
+    "KEYWORD_FUNCTION",
+    "KEYWORD_INT",
+    "KEYWORD_NULL",
+    "KEYWORD_RETURN",
+    "KEYWORD_VOID",
+    "KEYWORD_WHILE",
+    "KEYWORD_STRING"};
 
 void push_char_in_token(token_t *self, char ch)
 {

@@ -20,18 +20,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    FILE *fp; // file pointer
-
     // checking file
-    if ((fp = fopen(argv[1], FILEMODE)) == NULL)
+    if ((program.src = fopen(argv[1], FILEMODE)) == NULL)
     {
         fprintf(stderr, "Cannot open file\n");
         return EXIT_FAILURE;
     }
 
-    Scan(fp);
+    program.scanner = init_scanner();
 
-    fclose(fp);
+    fclose(program.src);
 
     return 0;
 }

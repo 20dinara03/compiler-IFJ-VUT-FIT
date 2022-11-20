@@ -53,11 +53,15 @@ enum SYMBOL_TABLE_T symbol_table_insert(symbol_table_t *self, string name, strin
 
 symbol_node_t *symbol_table_find(symbol_table_t *self, string name)
 {
-    if (self->top == NULL)
+    if (self == NULL)
+    {
         return NULL;
-
+    }
+    if (self->top == NULL)
+    {
+        return symbol_table_find(self->next, name);
+    }
     symbol_node_t *node = self->top;
-    symbol_table_t *table = self;
 
     while (node != NULL)
     {
@@ -65,15 +69,7 @@ symbol_node_t *symbol_table_find(symbol_table_t *self, string name)
         {
             if (node->left == NULL)
             {
-                table = table->next;
-                if (table == NULL)
-                {
-                    node = table->top;
-                }
-                else
-                {
-                    return NULL;
-                }
+                return symbol_table_find(self->next, name);
             }
             else
             {
@@ -84,15 +80,7 @@ symbol_node_t *symbol_table_find(symbol_table_t *self, string name)
         {
             if (node->right == NULL)
             {
-                table = table->next;
-                if (table == NULL)
-                {
-                    node = table->top;
-                }
-                else
-                {
-                    return NULL;
-                }
+                return symbol_table_find(self->next, name);
             }
             else
             {
@@ -147,12 +135,12 @@ symbol_node_t *init_symbol_node(string name, string value, types_t type)
 void push_scope(symbol_table_t **self, string name, types_t type)
 {
     symbol_table_t *new_scope = init_symbol_table();
-    memo_allocate(new_scope->scope_name,char,strlen(name));
-    strcpy(new_scope->scope_name,name);
+    memo_allocate(new_scope->scope_name, char, strlen(name));
+    strcpy(new_scope->scope_name, name);
+    new_scope->top = NULL;
     new_scope->scope_type = type;
     new_scope->next = *self;
     *self = new_scope;
-
 }
 
 void pop_scope(symbol_table_t **self)
@@ -161,7 +149,11 @@ void pop_scope(symbol_table_t **self)
     {
         symbol_table_t *delete_scope = *self;
         *self = (*self)->next;
-        delete_scope->top->free(&delete_scope->top);
+        if (delete_scope->top != NULL)
+        {
+            delete_scope->top->free(&delete_scope->top);
+        }
+        free(delete_scope->scope_name);
         free(delete_scope);
     }
 }
