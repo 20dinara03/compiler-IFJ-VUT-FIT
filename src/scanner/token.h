@@ -111,6 +111,14 @@ struct token_t
      * @param token pointer to token_t
      */
     void (*free)(token_t **);
+    /**
+     * @brief Fills token with text and type
+     *
+     * @param self pointer to token_t
+     * @param text token's text
+     * @param type token's type
+     */
+    void (*fill)(token_t*self,string text,types_t type);
 };
 
 /**

@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <string.h>
 #include <stdio.h>
+#include "expr_parser.h"
 
 #define token self->scanner->current_token
 #define next_token safeNextToken(self)
@@ -428,31 +429,12 @@ bool parseReturn(parser_t *self) {
     return false;
 }
 
-bool parseParenthesis(parser_t *self) {
-    log("parenthesis ::= '(' expression ')'")
-    bool pass = token_is("(") AND parseExpression(self) AND token_is(")");
-    return pass;
-}
 
-bool UpperExpression(parser_t *self) {
-    token_not_null
-    char* rule = "cycleExpression ::= expression cycleExpression | ''";
-    if (parseFunctionCall(self)) return true;
-    if (
-        parseStringLiteral(self) OR parseVariableIdentifier(self) OR token_is("null") OR token_is("===")
-        OR token_is("==") OR token_is("!==") OR token_type_is("INT_LITERAL") OR token_type_is("DOUBLE_LITERAL")
-        OR token_is("!=") OR token_is(">=") OR token_is("<=") OR token_is(">")
-        OR token_is("<") OR token_is("+") OR token_is("-") OR token_is("*") OR token_is("/")
-        OR token_is("&&") OR token_is("||") OR token_is("!") OR parseParenthesis(self)
-    ) {
-        UpperExpression(self); // cycle all other expression
-        return true;
-    }
-    return false;
-}
-
-bool parseExpression(parser_t *self) {
-    return UpperExpression(self);
+bool parseExpression(parser_t *parser) {
+    ast_node_t* expr_tree = init_tree(parser);
+    expr_tree->build_tree(expr_tree);
+    printf(" %d\n",expr_tree->is_build);
+    return expr_tree->is_build;
 }
 
 bool parseType(parser_t *self) {

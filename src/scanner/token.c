@@ -83,6 +83,16 @@ void push_char_in_token(token_t *self, char ch)
     }
 }
 
+void fill(token_t *self, string text, types_t type)
+{
+    if (text != NULL)
+    {
+        memo_allocate(self->text, char, strlen(text));
+        strcpy(self->text, text);
+    }
+    self->type = type;
+}
+
 void reset_token(token_t **self)
 {
     *self = init_token();
