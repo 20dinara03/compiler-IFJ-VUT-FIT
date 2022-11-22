@@ -106,7 +106,7 @@ code_templater_t* new_code_templater();
 void free_code_templater(code_templater_t *templater);
 
 
-#define MAX_CODE_LINE_LENGTH 256
+#define MAX_CODE_LINE_LENGTH 40
 
 // 10.4.1 FRAMES
 #define CODE_FRAME_FUNCTION_WITH_2_ARGS_DEC(_name) char* code_##_name(arg_t *var, arg_t *symbol);

@@ -35,10 +35,10 @@ label_t *new_label(code_stack_t *stack, code_type name) {
     };
     label_t *self = (label_t*)malloc(sizeof(label_t));
     self->free = free_label;
-    self->name = malloc(strlen(transalate[name]) + stack->size * 3);
+    self->name = malloc(strlen(transalate[name]) + stack->size * 5);
     sprintf(self->name, "%s", transalate[name]);
 
-    for (int i = 1; i < stack->size; i++) // i = 1 because stack[0] is global
+    for (int i = 0; i < stack->size; i++)
         sprintf(self->name, "%s_%d", self->name, stack->blocks[i]->id);
 
     return self;
@@ -190,7 +190,7 @@ CODE_TYPE_FUNCTION_WITH_2_ARGS(TYPE)
 // 10.4.7 PIPELINE
 char *code_LABEL(label_t *label) {
     char *code = (char *) malloc(sizeof(char) * 50);
-    sprintf(code, "LABEL .%s\n", label->name);
+    sprintf(code, "%s .%s\n", "LABEL", label->name);
     label->free(label);
     return code;
 }

@@ -9,17 +9,15 @@
 #define token_is(b) equal(self, token->text, b)
 #define None _None(self)
 #define token_type_is(b) equal(self, token->decode(token->type), b)
-#define AND && _safe_and(self, rule, NULLPTR, NULLPTR) &&
-#define CAND(_t) && _safe_and(self, rule, _t, NULLPTR) && // code &&
-#define JAND(_t) && _safe_and(self, rule, JUMPIFNEQ, _t) && // jump &&
+#define AND && _safe_and(self, rule, NULLPTR) &&
+#define CAND(_t) && _safe_and(self, rule, _t) &&
 #define OR || _safe_or(self, rule) ||
 #define extra_logging logging(token->text);logging("\t(");logging(token->decode(token->type));logging(")");logging("\n\t | \t")
 #define arg(type, name) new_arg(type, name)
-#define label(type) new_label(self->code_stack, type)
-#define new_code_frame self->current_block = self->code_stack->push(self->code_stack); bool pass;
-#define frame_add_line self->current_block->add_line
-#define as self->current_block, self->code_stack->templater->
-#define end_code_frame frame_add_line(as LABEL(label(LABEL_END))); self->code_stack->pop(self->code_stack, pass); self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
+#define label(type) new_label(self->code_stack, type))
+#define set self->current_block->add_line(self->current_block, self->code_stack->templater->
+#define new_code_frame self->current_block = self->code_stack->push(self->code_stack);
+#define end_code_frame self->code_stack->pop(self->code_stack, pass); self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
 
 
 define_logging(parser)
@@ -35,8 +33,8 @@ parser_t* init_parser(scanner_t* scanner) {
 }
 
 bool equal(parser_t* self, const char* a, const char *b) {
-    if (strcmp(a, b) == 0 && token != NULL) {
-        self->scanner->free_token(self->scanner);
+    if (strcmp(a, b) == 0) {
+        free(token);
         next_token;
         return true;
     }
@@ -61,8 +59,6 @@ void destruct_parser(parser_t *self) {
         self->scanner->free(self->scanner);
     if (self->logger != NULL)
         free_parser_logging(self->logger);
-    if (self->code_stack != NULL)
-        self->code_stack->free(self->code_stack);
     if (self != NULL)
         free(self);
 }
@@ -77,16 +73,8 @@ bool parse(parser_t *self) {
     return false;
 }
 
-bool _safe_and(parser_t *self, char *rule, code_type type, code_type type2) {
-    if (type == JUMPIFNEQ) {
-        self->current_block->add_line(self->current_block, self->code_stack->templater->
-        JUMPIFNEQ(
-            new_label(self->code_stack, type2),
-            new_arg(TF, "result"),
-            new_arg(BOOL, "true")
-            )
-        );
-    } else if (type != NULLPTR) {
+bool _safe_and(parser_t *self, char *rule, code_type type) {
+    if (type != NULLPTR) {
         self->current_block->add_line(self->current_block, self->code_stack->templater->LABEL(new_label(self->code_stack, type)));
     }
     extra_logging; logging(rule); logging("\n");
@@ -116,20 +104,15 @@ bool parseVariableIdentifier(parser_t *self) {
 
 bool parseStringLiteral(parser_t *self) {
     extra_logging; logging("parseStringLiteral\n");
-    // TODO: const literal
     return token_type_is("STRING_LITERAL");
 }
 
 bool parseProg(parser_t *self) {
-
     extra_logging;
     logging_rule("prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending");
-    new_code_frame
-    pass = token_is("<?php") AND token_is("declare") AND token_is("(") AND token_is("strict_types")
+    return token_is("<?php") AND token_is("declare") AND token_is("(") AND token_is("strict_types")
            AND token_is("=") AND token_is("1") AND token_is(")") AND token_is(";")
            AND parseCodeLines(self) AND parseOptionalEnding(self);
-    end_code_frame
-    return pass;
 }
 
 bool parseOptionalEnding(parser_t *self) {
@@ -141,7 +124,7 @@ bool parseOptionalEnding(parser_t *self) {
 bool parseCodeLines(parser_t *self) {
     extra_logging;
 	logging_rule("code_lines ::= (code_line code_lines) | ''");
-    return parseCodeLine(self) AND parseCodeLines(self) OR None;
+    return (parseCodeLine(self) AND parseCodeLines(self)) OR None;
 }
 
 bool parseCodeLine(parser_t *self) {
@@ -152,16 +135,11 @@ bool parseCodeLine(parser_t *self) {
 
 bool parseFunctionDefinition(parser_t *self) {
     extra_logging;
-    logging_rule("function_definition ::= function_header '{' statements '}'");
+	logging_rule("function_definition ::= function_header '{' statements '}'");
 
-    if (parseFunctionHeader(self) AND true) {
-        new_code_frame
-            frame_add_line(as LABEL(label(FUNCTION)));
-            pass = token_is("{") AND parseStatements(self) AND token_is("}");
-        end_code_frame
-        return pass;
-    }
-    return false;
+    bool pass = parseFunctionHeader(self) AND token_is("{") AND parseStatements(self) AND token_is("}");
+
+    return pass;
 }
 
 bool parseFunctionHeader(parser_t *self) {
@@ -192,15 +170,11 @@ bool parseFunctionNParam(parser_t *self) {
 bool parseFunctionParam(parser_t *self) {
     extra_logging; 
 	logging_rule("function_param ::= type variable_identifier");
-
-    bool pass = (parseType(self) AND parseIdentifier(self));
-    if (pass)
-        frame_add_line(as POPS(new_arg(LF, token->text)));
-    return pass;
+    return parseType(self) AND parseIdentifier(self);
 }
 
 bool parseFunctionCall(parser_t *self) {
-    extra_logging;
+    extra_logging; 
 	logging_rule("function_call ::= function_identifier '(' variable_func_identifiers ')'");
     return parseIdentifier(self) AND token_is("(") AND parseVariableFuncIdentifiers(self) AND token_is(")");
 }
@@ -248,38 +222,26 @@ bool parseOptionalStatement(parser_t *self) {
 }
 
 bool parseWhile(parser_t *self) {
-    extra_logging;
+    extra_logging; 
 	logging_rule("while ::= 'while' '(' expression ')' '{' statements '}'");
 
-    if (token_is("while") AND true) {
-        new_code_frame
-            frame_add_line(as LABEL(label(WHILE)));
-            pass = token_is("(") AND parseExpression(self) AND token_is(")")
-                AND token_is("{") AND parseStatements(self) AND token_is("}");
-        end_code_frame
-        return pass;
-    }
-    return false;
+
+    bool pass = token_is("while") AND token_is("(") AND parseExpression(self) AND token_is(")")
+        AND token_is("{") AND parseStatements(self) AND token_is("}");
+
+    return pass;
 }
 
 bool parseCondition(parser_t *self) {
     extra_logging; 
 	logging_rule("condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else");
 
-    if (token_is("if")) {
-        new_code_frame
-        frame_add_line(as LABEL(label(IF)));
-        pass = token_is("(") AND
-       parseExpression(self) AND
-               token_is(")") JAND(ELSE)
-               token_is("{") AND
-       parseStatements(self) AND
-               token_is("}") CAND(ELSE)
-       parseConditionElse(self);
-        end_code_frame
-        return pass;
-    }
-    return false;
+    new_code_frame
+    self->current_block->add_line(self->current_block, self->code_stack->templater->LABEL(new_label(self->code_stack, IF)));
+        bool pass = token_is("if") AND token_is("(") AND parseExpression(self) AND token_is(")")
+            AND token_is("{") AND parseStatements(self) AND token_is("}") CAND(ELSE) parseConditionElse(self);
+    end_code_frame
+    return pass;
 }
 
 bool parseConditionElse(parser_t *self) {
