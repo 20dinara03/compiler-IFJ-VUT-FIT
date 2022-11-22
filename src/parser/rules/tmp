@@ -1,0 +1,595 @@
+TOKEN CHANGES
+<?php	(HEAD)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+declare	(IDENTIFIER)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+(	(OPERATOR_LEFT_BRACKET)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+strict_types	(IDENTIFIER)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+=	(OPERATOR_EQUAL)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+1	(INT_LITERAL)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+;	(OPERATOR_SEMICOLON)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+TOKEN CHANGES
+TOKEN CHANGES
+TOKEN CHANGES
+TOKEN CHANGES
+write	(IDENTIFIER)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+write	(IDENTIFIER)
+	 | 	"code_lines ::= (code_line code_lines) | ''"
+write	(IDENTIFIER)
+	 | 	"code_line ::= statement | function_definition"
+write	(IDENTIFIER)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+write	(IDENTIFIER)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+write	(IDENTIFIER)
+	 | 	"identifier_assignment ::= variable_identifier assignment"
+write	(IDENTIFIER)
+	 | 	parseVariableIdentifier
+write	(IDENTIFIER)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+write	(IDENTIFIER)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+write	(IDENTIFIER)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+write	(IDENTIFIER)
+	 | 	parseIdentifier
+TOKEN CHANGES
+(	(OPERATOR_LEFT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+TOKEN CHANGES
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	"variable_func_identifiers ::= variable_func_identifier variable_n_identifier | ''"
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	"variable_func_identifier ::= variable_identifier | expression"
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	parseVariableIdentifier
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	"variable_func_identifier ::= variable_identifier | expression"
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	parseIdentifier
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+"Zadejte cislo pro vypocet faktorialu\n"	(STRING_LITERAL)
+	 | 	parseStringLiteral
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseIdentifier
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseStringLiteral
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseVariableIdentifier
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"variable_func_identifiers ::= variable_func_identifier variable_n_identifier | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"variable_n_identifier ::= ',' variable_func_identifier variable_n_identifier | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"variable_n_identifier ::= ',' variable_func_identifier variable_n_identifier | ''"
+None | for token: )
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+;	(OPERATOR_SEMICOLON)
+	 | 	parseIdentifier
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	parseStringLiteral
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	parseVariableIdentifier
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+TOKEN CHANGES
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"code_lines ::= (code_line code_lines) | ''"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"code_lines ::= (code_line code_lines) | ''"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"code_line ::= statement | function_definition"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"identifier_assignment ::= variable_identifier assignment"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	parseVariableIdentifier
+TOKEN CHANGES
+=	(OPERATOR_EQUAL)
+	 | 	"identifier_assignment ::= variable_identifier assignment"
+=	(OPERATOR_EQUAL)
+	 | 	"assignment ::= '=' expression | '+=' expression | '-=' expression | '*=' expression | '/=' expression"
+TOKEN CHANGES
+readi	(IDENTIFIER)
+	 | 	"assignment ::= '=' expression | '+=' expression | '-=' expression | '*=' expression | '/=' expression"
+readi	(IDENTIFIER)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+readi	(IDENTIFIER)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+readi	(IDENTIFIER)
+	 | 	parseIdentifier
+TOKEN CHANGES
+(	(OPERATOR_LEFT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+TOKEN CHANGES
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"variable_func_identifiers ::= variable_func_identifier variable_n_identifier | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"variable_func_identifier ::= variable_identifier | expression"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseVariableIdentifier
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"variable_func_identifier ::= variable_identifier | expression"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseIdentifier
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseStringLiteral
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseVariableIdentifier
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"variable_func_identifiers ::= variable_func_identifier variable_n_identifier | ''"
+None | for token: )
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+;	(OPERATOR_SEMICOLON)
+	 | 	parseIdentifier
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	parseStringLiteral
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	parseVariableIdentifier
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+TOKEN CHANGES
+if	(KEYWORD_IF)
+	 | 	"code_lines ::= (code_line code_lines) | ''"
+if	(KEYWORD_IF)
+	 | 	"code_lines ::= (code_line code_lines) | ''"
+if	(KEYWORD_IF)
+	 | 	"code_line ::= statement | function_definition"
+if	(KEYWORD_IF)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+if	(KEYWORD_IF)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+if	(KEYWORD_IF)
+	 | 	"identifier_assignment ::= variable_identifier assignment"
+if	(KEYWORD_IF)
+	 | 	parseVariableIdentifier
+if	(KEYWORD_IF)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+if	(KEYWORD_IF)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+if	(KEYWORD_IF)
+	 | 	parseIdentifier
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	parseStringLiteral
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	parseVariableIdentifier
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+if	(KEYWORD_IF)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+if	(KEYWORD_IF)
+	 | 	"return ::= 'return' expression"
+if	(KEYWORD_IF)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+if	(KEYWORD_IF)
+	 | 	"optional_statement ::= condition | while"
+if	(KEYWORD_IF)
+	 | 	"condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else"
+TOKEN CHANGES
+(	(OPERATOR_LEFT_BRACKET)
+	 | 	"condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else"
+TOKEN CHANGES
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	parseIdentifier
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	parseStringLiteral
+$a	(VARIABLE_IDENTIFIER)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+$a	(VARIABLE_IDENTIFIER)
+	 | 	parseVariableIdentifier
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+===	(OPERATOR_EQUAL)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+===	(OPERATOR_EQUAL)
+	 | 	parseIdentifier
+===	(OPERATOR_EQUAL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+===	(OPERATOR_EQUAL)
+	 | 	parseStringLiteral
+===	(OPERATOR_EQUAL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+===	(OPERATOR_EQUAL)
+	 | 	parseVariableIdentifier
+===	(OPERATOR_EQUAL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+null	(KEYWORD_NULL)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+null	(KEYWORD_NULL)
+	 | 	parseIdentifier
+null	(KEYWORD_NULL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+null	(KEYWORD_NULL)
+	 | 	parseStringLiteral
+null	(KEYWORD_NULL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+null	(KEYWORD_NULL)
+	 | 	parseVariableIdentifier
+null	(KEYWORD_NULL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+null	(KEYWORD_NULL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseIdentifier
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseStringLiteral
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	parseVariableIdentifier
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else"
+TOKEN CHANGES
+{	(OPERATOR_LEFT_CURLY_BRACKET)
+	 | 	"condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else"
+TOKEN CHANGES
+write	(IDENTIFIER)
+	 | 	"condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else"
+write	(IDENTIFIER)
+	 | 	"statements ::= statement statements | ''"
+write	(IDENTIFIER)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+write	(IDENTIFIER)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+write	(IDENTIFIER)
+	 | 	"identifier_assignment ::= variable_identifier assignment"
+write	(IDENTIFIER)
+	 | 	parseVariableIdentifier
+write	(IDENTIFIER)
+	 | 	"strict_statement ::= identifier_assignment | expression | return"
+write	(IDENTIFIER)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+write	(IDENTIFIER)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+write	(IDENTIFIER)
+	 | 	parseIdentifier
+TOKEN CHANGES
+(	(OPERATOR_LEFT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+TOKEN CHANGES
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	"variable_func_identifiers ::= variable_func_identifier variable_n_identifier | ''"
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	"variable_func_identifier ::= variable_identifier | expression"
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	parseVariableIdentifier
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	"variable_func_identifier ::= variable_identifier | expression"
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	"expression ::= function_call | string_literal | variable_identifier | ==="
+"cycleExpression ::= expression cycleExpression | ''"
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	parseIdentifier
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	"cycleExpression ::= expression cycleExpression | ''"
+"Faktorial nelze spocitat\n"	(STRING_LITERAL)
+	 | 	parseStringLiteral
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+)	(OPERATOR_RIGHT_BRACKET)
+None | for token: )
+)	(OPERATOR_RIGHT_BRACKET)
+	 | 	"function_call ::= function_identifier '(' variable_func_identifiers ')'"
+TOKEN CHANGES
+"cycleExpression ::= expression cycleExpression | ''"
+;	(OPERATOR_SEMICOLON)
+	 | 	"statement ::= strict_statement ';' | optional_statement"
+TOKEN CHANGES
+}
+None | for token: }
+}	(OPERATOR_RIGHT_CURLY_BRACKET)
+	 | 	"condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else"
+TOKEN CHANGES
+else	(KEYWORD_ELSE)
+	 | 	"condition_else ::= 'else' '{' statements '}' | ''"
+TOKEN CHANGES
+{	(OPERATOR_LEFT_CURLY_BRACKET)
+	 | 	"condition_else ::= 'else' '{' statements '}' | ''"
+TOKEN CHANGES
+}	(OPERATOR_RIGHT_CURLY_BRACKET)
+	 | 	"condition_else ::= 'else' '{' statements '}' | ''"
+TOKEN CHANGES
+if	(KEYWORD_IF)
+	 | 	"optional_statement ::= condition | while"
+if	(KEYWORD_IF)
+	 | 	"while ::= 'while' '(' expression ')' '{' statements '}'"
+if	(KEYWORD_IF)
+	 | 	"code_line ::= statement | function_definition"
+if	(KEYWORD_IF)
+	 | 	"function_definition ::= function_header '{' statements '}'"
+if	(KEYWORD_IF)
+	 | 	"function_header ::= 'function' function_identifier '(' function_params ')' optional_result_type"
+if	(KEYWORD_IF)
+	 | 	"code_lines ::= (code_line code_lines) | ''"
+None | for token: if
+if	(KEYWORD_IF)
+	 | 	"prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending"
+if	(KEYWORD_IF)
+	 | 	"optional_ending ::= '' | '?'\n"
+if	(KEYWORD_IF)
+	 | 	"optional_ending ::= '' | '?'\n"
+None | for token: if

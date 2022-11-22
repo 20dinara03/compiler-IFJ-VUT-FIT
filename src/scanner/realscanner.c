@@ -63,7 +63,7 @@ token_t *scan_number(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -98,7 +98,7 @@ token_t *scan_number(char cur_char)
             }
             break;
         default:
-            fseek(program.src, -1, SEEK_CUR);
+            fseek(stdin, -1, SEEK_CUR);
             token_end = true;
         }
     }
@@ -114,7 +114,7 @@ token_t *scan_identifier(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -126,7 +126,7 @@ token_t *scan_identifier(char cur_char)
             break;
         default:
             check_identifier(token);
-            fseek(program.src, -1, SEEK_CUR);
+            fseek(stdin, -1, SEEK_CUR);
             token_end = true;
         }
     }
@@ -142,7 +142,7 @@ token_t *scan_variable_identifier(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -153,7 +153,7 @@ token_t *scan_variable_identifier(char cur_char)
             token->push_char(token, current);
             break;
         default:
-            fseek(program.src, -1, SEEK_CUR);
+            fseek(stdin, -1, SEEK_CUR);
             token_end = true;
         }
     }
@@ -169,7 +169,7 @@ token_t *scan_head(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -177,11 +177,11 @@ token_t *scan_head(char cur_char)
             if (token->type == POSSIBLE_HEAD)
             {
                 token->push_char(token, current);
-                token->type = HEAD;
+                token->type = POSSIBLE_HEAD_2;
             }
             break;
         case 'p':
-            if (token->type == HEAD)
+            if (token->type == POSSIBLE_HEAD_2)
             {
                 token->push_char(token, current);
                 token->type = KEYWORD_p;
@@ -213,7 +213,7 @@ token_t *scan_head(char cur_char)
             {
                 token->type = OPERATOR_LESS;
             }
-            fseek(program.src, -1, SEEK_CUR);
+            fseek(stdin, -1, SEEK_CUR);
             token_end = true;
         }
     }
@@ -229,7 +229,7 @@ token_t *scan_end(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -251,7 +251,7 @@ token_t *scan_end(char cur_char)
             {
                 check_identifier(token);
             }
-            fseek(program.src, -1, SEEK_CUR);
+            fseek(stdin, -1, SEEK_CUR);
             token_end = true;
         }
     }
@@ -267,7 +267,7 @@ token_t *scan_comment(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -281,7 +281,7 @@ token_t *scan_comment(char cur_char)
             {
                 token->push_char(token, current);
                 token->type = COMMENT;
-                fseek(program.src, -1, SEEK_CUR);
+                fseek(stdin, -1, SEEK_CUR);
                 token_end = true;
             }
             break;
@@ -301,7 +301,7 @@ token_t *scan_comment(char cur_char)
         case '\r':
             if (token->type == COMMENT_LINE)
             {
-                fseek(program.src, -1, SEEK_CUR);
+                fseek(stdin, -1, SEEK_CUR);
                 token_end = true;
             }
             break;
@@ -334,7 +334,7 @@ token_t *scan_operator(char cur_char, types_t type)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -377,7 +377,7 @@ token_t *scan_operator(char cur_char, types_t type)
             }
             break;
         default:
-            fseek(program.src, -1, SEEK_CUR);
+            fseek(stdin, -1, SEEK_CUR);
             token_end = true;
         }
     }
@@ -393,7 +393,7 @@ token_t *scan_string(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -417,7 +417,7 @@ token_t *scan_slash(char cur_char)
 
     while (!token_end)
     {
-        char current = fgetc(program.src);
+        char current = fgetc(stdin);
 
         switch (current)
         {
@@ -486,7 +486,7 @@ token_t *scan_slash(char cur_char)
             }
             break;
         default:
-            fseek(program.src, -1, SEEK_CUR);
+            fseek(stdin, -1, SEEK_CUR);
             token_end = true;
         }
     }
@@ -497,9 +497,11 @@ token_t *Scan()
 {
     /*Reading 1 character from a file until we reach the end of it*/
     char current_char;
-    while (!feof(program.src))
+    while (!feof(stdin))
     {
-        current_char = fgetc(program.src);
+        current_char = fgetc(stdin);
+        bool white_space_reading = true;
+        token_t *token = init_token();
 
         switch (current_char)
         {
@@ -558,6 +560,10 @@ token_t *Scan()
 
         case '<':
             program.scanner->current_token = scan_head(current_char);
+            if (token->type == HEAD)
+            {
+                white_space_reading = false;
+            }
             break;
 
         case '>':
@@ -566,6 +572,10 @@ token_t *Scan()
 
         case '?':
             program.scanner->current_token = scan_end(current_char);
+            if (token->type == END)
+            {
+                white_space_reading = true;
+            }
             break;
 
         case '=':
@@ -592,6 +602,13 @@ token_t *Scan()
         case '_':
             program.scanner->current_token = scan_identifier(current_char);
             break;
+        case ' ':
+        case '\t':
+            if (white_space_reading)
+            {
+              token->push_char(token, current_char);
+              token->type = WHITE_SPACE;
+            }
         default:
             continue;
         }
