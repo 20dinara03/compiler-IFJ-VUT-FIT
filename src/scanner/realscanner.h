@@ -9,7 +9,8 @@ declare_logging(scanner)
 typedef struct scanner_t
 {
     token_t *current_token;
-    token_t* (*get_next_token)();
+    token_t* (*get_next_token)(struct scanner_t *self);
+    bool white_space_reading;
     struct scanner_t* (*init_scanner)();
     void (*free)(struct scanner_t *self);
     scanner_logging_t *logger;

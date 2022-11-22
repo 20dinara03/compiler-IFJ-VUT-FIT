@@ -16,7 +16,6 @@ typedef enum
     WHITE_SPACE,
     COMMENT,
     POSSIBLE_HEAD,
-    POSSIBLE_HEAD_2,
     POSSIBLE_OR,
     POSSIBLE_AND,
     POSSIBLE_COMMENT,
@@ -71,7 +70,8 @@ typedef enum
     KEYWORD_RETURN,
     KEYWORD_VOID,
     KEYWORD_WHILE,
-    KEYWORD_STRING
+    KEYWORD_STRING,
+    POSSIBLE_HEAD_2
 } types_t;
 
 

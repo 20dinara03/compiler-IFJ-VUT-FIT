@@ -41,7 +41,7 @@ void tryTrashToken(parser_t *self) {
 }
 
 token_t* safeNextToken(parser_t *self) {
-    token_t *next = self->scanner->get_next_token();
+    token_t *next = self->scanner->get_next_token(self->scanner);
     tryTrashToken(self);
     return next;
 }

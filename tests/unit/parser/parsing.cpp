@@ -16,7 +16,7 @@ struct generator_t {
 generator_t* generator{};
 program_t test;
 
-token_t* mockNextToken() {
+token_t* mockNextToken(scanner_t* self) {
     if (generator->index >= generator->size) {
         return nullptr;
     }
@@ -97,7 +97,7 @@ protected:
                 generator->tokens[i]->text = token;
             }
         }
-        mockNextToken();
+        mockNextToken(nullptr);
     }
 };
 
