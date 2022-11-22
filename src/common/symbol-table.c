@@ -1,4 +1,5 @@
 #include "symbol-table.h"
+#include <string.h>
 
 symbol_node_t *init_symbol_node(string name, string value, types_t type);
 

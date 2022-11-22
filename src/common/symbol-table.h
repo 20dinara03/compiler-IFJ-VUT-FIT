@@ -1,6 +1,5 @@
 #ifndef SYMBOL_TABLE
 #define SYMBOL_TABLE
-#include "../main.h"
 #include "../scanner/token.h"
 typedef struct symbol_table_t symbol_table_t;
 typedef struct symbol_node_t symbol_node_t;

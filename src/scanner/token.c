@@ -1,4 +1,6 @@
 #include "token.h"
+#include <stdio.h>
+#include <string.h>
 
 /* token types in string representation */
 const char *TOKEN_TYPE_TO_STRING[] = {
