@@ -2,10 +2,15 @@
 #define PARSE_H
 #include "../scanner/realscanner.h"
 #include "../common/logging.h"
+#include "../code_generation/code_generation_base.h"
+#include "../code_generation/code_templates.h"
 
 declare_logging(parser)
 
 typedef struct parser_t {
+    code_stack_t *code_stack;
+    code_block_t *current_block;
+
     scanner_t *scanner;
     parser_logging_t *logger;
     void (*free)(struct parser_t *self);
