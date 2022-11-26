@@ -16,19 +16,21 @@ struct generator_t {
 generator_t* generator{};
 program_t test;
 
-token_t* mockNextToken(scanner_t* self) {
-    if (generator->index >= generator->size) {
+token_t* mockNextToken() {
+    if (generator->index >= generator->size)
         return nullptr;
-    }
     test.scanner->current_token = generator->tokens[generator->index++];
     return test.scanner->current_token;
 }
+
+void mockFreeToken(scanner_t* token) {};
 
 class ParsingTestRaw : public ::testing::Test {
 protected:
 
     void SetUp() override {
         test.scanner = init_scanner();
+        test.scanner->free_token = mockFreeToken;
         generator = (generator_t*) malloc(sizeof(generator_t));
         generator->size = generator->index = 0;
         test.parser = init_parser(test.scanner);
@@ -44,6 +46,7 @@ protected:
     }
 
     void TearDown() override {
+        printf("TearDown");
         test.parser->free(test.parser);
         freeGenerator();
     }
@@ -76,7 +79,7 @@ protected:
         if (generator->size == 0)
             return;
 
-        if (generator->tokens == nullptr)
+        if (generator->tokens == NULL)
             generator->tokens = (token_t**) malloc(sizeof(token_t*) * generator->size);
         else
             generator->tokens = (token_t**) realloc(generator->tokens, sizeof(token_t*) * generator->size);
@@ -97,7 +100,7 @@ protected:
                 generator->tokens[i]->text = token;
             }
         }
-        mockNextToken(nullptr);
+        mockNextToken();
     }
 };
 

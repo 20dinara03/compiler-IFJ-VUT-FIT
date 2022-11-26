@@ -35,7 +35,7 @@ parser_t* init_parser(scanner_t* scanner) {
 }
 
 bool equal(parser_t* self, const char* a, const char *b) {
-    if (strcmp(a, b) == 0) {
+    if (strcmp(a, b) == 0 && token != NULL) {
         self->scanner->free_token(self->scanner);
         next_token;
         return true;
@@ -61,6 +61,8 @@ void destruct_parser(parser_t *self) {
         self->scanner->free(self->scanner);
     if (self->logger != NULL)
         free_parser_logging(self->logger);
+    if (self->code_stack != NULL)
+        self->code_stack->free(self->code_stack);
     if (self != NULL)
         free(self);
 }
@@ -152,12 +154,14 @@ bool parseFunctionDefinition(parser_t *self) {
     extra_logging;
     logging_rule("function_definition ::= function_header '{' statements '}'");
 
-    new_code_frame
-        frame_add_line(as LABEL(label(FUNCTION)));
-        pass = parseFunctionHeader(self) AND token_is("{") AND parseStatements(self) AND token_is("}");
-    end_code_frame
-
-    return pass;
+    if (parseFunctionHeader(self) AND true) {
+        new_code_frame
+            frame_add_line(as LABEL(label(FUNCTION)));
+            pass = token_is("{") AND parseStatements(self) AND token_is("}");
+        end_code_frame
+        return pass;
+    }
+    return false;
 }
 
 bool parseFunctionHeader(parser_t *self) {
@@ -190,9 +194,8 @@ bool parseFunctionParam(parser_t *self) {
 	logging_rule("function_param ::= type variable_identifier");
 
     bool pass = (parseType(self) AND parseIdentifier(self));
-    if (pass) {
+    if (pass)
         frame_add_line(as POPS(new_arg(LF, token->text)));
-    }
     return pass;
 }
 
@@ -248,31 +251,35 @@ bool parseWhile(parser_t *self) {
     extra_logging;
 	logging_rule("while ::= 'while' '(' expression ')' '{' statements '}'");
 
-
-    new_code_frame
-    frame_add_line(as LABEL(label(WHILE)));
-    pass = token_is("while") AND token_is("(") AND parseExpression(self) AND token_is(")")
-        AND token_is("{") AND parseStatements(self) AND token_is("}");
-    end_code_frame
-    return pass;
+    if (token_is("while") AND true) {
+        new_code_frame
+            frame_add_line(as LABEL(label(WHILE)));
+            pass = token_is("(") AND parseExpression(self) AND token_is(")")
+                AND token_is("{") AND parseStatements(self) AND token_is("}");
+        end_code_frame
+        return pass;
+    }
+    return false;
 }
 
 bool parseCondition(parser_t *self) {
     extra_logging; 
 	logging_rule("condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else");
 
-    new_code_frame
-    frame_add_line(self->current_block, self->code_stack->templater->LABEL(new_label(self->code_stack, IF)));
-        pass =  token_is("if")  AND
-                token_is("(")   AND
-        parseExpression(self)   AND
-                token_is(")")   JAND(ELSE)
-                token_is("{")   AND
-        parseStatements(self)   AND
-                token_is("}")   CAND(ELSE)
-        parseConditionElse(self);
-    end_code_frame
-    return pass;
+    if (token_is("if")) {
+        new_code_frame
+        frame_add_line(as LABEL(label(IF)));
+        pass = token_is("(") AND
+       parseExpression(self) AND
+               token_is(")") JAND(ELSE)
+               token_is("{") AND
+       parseStatements(self) AND
+               token_is("}") CAND(ELSE)
+       parseConditionElse(self);
+        end_code_frame
+        return pass;
+    }
+    return false;
 }
 
 bool parseConditionElse(parser_t *self) {
