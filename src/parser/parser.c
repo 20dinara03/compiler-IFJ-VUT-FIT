@@ -36,7 +36,7 @@ parser_t* init_parser(scanner_t* scanner) {
 
 bool equal(parser_t* self, const char* a, const char *b) {
     if (strcmp(a, b) == 0) {
-        token->free(&token);
+        self->scanner->free_token(self->scanner);
         next_token;
         return true;
     }
