@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "expr_parser.h"
 
+
 #define token self->scanner->current_token
 #define next_token safeNextToken(self)
 #define token_not_null if (token == NULL) {return false;}
@@ -430,11 +431,10 @@ bool parseReturn(parser_t *self) {
 }
 
 
-bool parseExpression(parser_t *parser) {
-    ast_node_t* expr_tree = init_tree(parser);
-    expr_tree->build_tree(expr_tree);
-    printf(" %d\n",expr_tree->is_build);
-    return expr_tree->is_build;
+bool parseExpression(parser_t *self) {
+    bool result = expression(self);
+    printf("%d \n",result);
+    return result;
 }
 
 bool parseType(parser_t *self) {

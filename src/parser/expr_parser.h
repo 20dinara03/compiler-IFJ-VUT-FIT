@@ -1,29 +1,77 @@
-#ifndef EXRP_PARSER
-#define EXPR_PARSER
+#ifndef EXRP_PARSER_H
+#define EXPR_PARSER_H
 
 #include "parser.h"
+#include <stdio.h>
 
-typedef struct ast_node_t ast_node_t;
+typedef struct expr_stack_item_t expr_stack_item_t;
 
-struct ast_node_t
+typedef enum
+{
+    L, // <
+    E, // =
+    R, // >
+    N, // NONE
+} prec_table_actions;
+
+typedef enum
+{
+    PREC_PLUS_MINUS, // 0 +-
+    PREC_MUL_DIV,    // 1 */
+    PREC_REL,        // 2 r
+    PREC_LEFT_BR,    // 3 (
+    PREC_RIGHT_BR,   // 4 )
+    PREC_ID,         // 5 id
+    PREC_CONC,       // 6 .
+    PREC_DOLLAR,     // 7 $
+} prec_table_index;
+
+typedef enum
+{
+	PLUS,			// +
+	MINUS,			// -
+	MUL,			// *
+	DIV,			// /
+	EQ,				// ===
+    CONC,           // .
+	N_EQ,			// !==
+	L_EQ,			// <=
+	LESS,			// <
+	M_EQ,			// >=
+	MORE,			// >
+	LEFT_BRACKET,	// (
+	RIGHT_BRACKET,	// )
+	ID,		// ID
+	INT_NUMBER,		// int
+	DOUBLE_NUMBER,	// double
+	STRING,			// string
+	DOLLAR,			// $
+	STOP,			// <
+	E_NONTERM		// non-terminal
+} stack_symbols;
+
+typedef struct expr_stack_item_t
+{
+    /////
+    stack_symbols symbol;
+    expr_stack_item_t *next;
+} expr_stack_item_t;
+
+typedef struct
+{
+    expr_stack_item_t *top;
+} expr_stack_t;
+
+typedef struct
 {
     parser_t *parser;
-    token_t *token;
-    ast_node_t *left;
-    ast_node_t *right;
-    bool is_build;
-    ast_node_t *(*build_tree)(ast_node_t *self);
-};
+    expr_stack_t *stack;
+} expr_parser_t;
 
-ast_node_t *init_tree(parser_t *parser);
-ast_node_t *build_tree(ast_node_t *self);
-ast_node_t *CreateNodeNumber(token_t *token);
-ast_node_t *CreateNode(token_t *token, ast_node_t *left, ast_node_t *right);
-ast_node_t *CreateUnaryNode(token_t *token, ast_node_t *left);
-ast_node_t *Expression(ast_node_t *self);
-ast_node_t *Expression1(ast_node_t *self);
-ast_node_t *Term(ast_node_t *self);
-ast_node_t *Term1(ast_node_t *self);
-ast_node_t *Factor(ast_node_t *self);
+
+
+bool expression(parser_t* parser);
+
+
 
 #endif
