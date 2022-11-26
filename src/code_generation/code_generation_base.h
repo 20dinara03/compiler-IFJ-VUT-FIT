@@ -11,6 +11,7 @@ typedef enum {
     ELSE,
     FUNCTION,
     WHILE,
+    JUMPIFNEQ,
     LABEL_END,
     NULLPTR,
 } code_type;

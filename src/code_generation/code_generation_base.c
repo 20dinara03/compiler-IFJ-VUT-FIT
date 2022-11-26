@@ -10,9 +10,12 @@ code_line_t* new_code_line(char* line) {
     self->release = code_line_release;
     return self;
 }
+
 void destruct_code_line(code_line_t *self) {
     free(self->line);
+    self->line = NULL;
     free(self);
+    self = NULL;
 }
 
 void code_line_release(code_line_t *self) {
@@ -32,15 +35,30 @@ code_block_t* new_code_block(int id) {
 }
 
 void destruct_code_block(code_block_t *self) {
-    for (int i = 0; i < self->size; i++)
-        self->lines[i]->free(self->lines[i]);
-    free(self->lines);
+    if (self->lines != NULL) {
+        for (int i = 0; i < self->size; i++)
+            if (self->lines[i] != NULL) {
+                self->lines[i]->free(self->lines[i]);
+                self->lines[i] = NULL;
+            }
+        free(self->lines);
+        self->lines = NULL;
+    }
     free(self);
+    self = NULL;
 }
 
 void code_block_release(code_block_t *self) {
-    for (int i = 0; i < self->size; i++)
-        self->lines[i]->release(self->lines[i]);
+    if (self->lines != NULL) {
+        for (int i = 0; i < self->size; i++) {
+            self->lines[i]->release(self->lines[i]);
+            self->lines[i]->free(self->lines[i]);
+            self->lines[i] = NULL;
+        }
+        free(self->lines);
+    }
+    self->lines = NULL;
+
 }
 
 void code_block_add_line(code_block_t *self, char* line) {
@@ -48,8 +66,8 @@ void code_block_add_line(code_block_t *self, char* line) {
     if (self->lines == NULL) {
         self->lines = malloc(sizeof(code_line_t*));
         self->size = 0;
-    }
-    self->lines = realloc(self->lines, sizeof(code_line_t*) * (self->size + 1));
+    } else
+        self->lines = realloc(self->lines, sizeof(code_line_t *) * (self->size + 1));
     self->lines[self->size++] = new_line;
 }
 
@@ -76,11 +94,16 @@ void destruct_code_stack(code_stack_t *self) {
 code_block_t* code_stack_push(code_stack_t *self) {
     self->blocks = realloc(self->blocks, sizeof(code_block_t*) * (self->size + 1));
     self->blocks[self->size] = new_code_block(++self->id);
+    if (self->size > 0) {
+        self->blocks[self->size - 1]->release(self->blocks[self->size - 1]);
+    }
     return self->blocks[self->size++];
 }
 
 void code_stack_pop(code_stack_t *self, bool release) {
+    --self->size;
     if (release)
-        self->blocks[self->size - 1]->release(self->blocks[self->size - 1]);
-    self->blocks[--self->size]->free(self->blocks[self->size]);
+        self->blocks[self->size]->release(self->blocks[self->size]);
+    self->blocks[self->size]->free(self->blocks[self->size]);
+    self->blocks[self->size] = NULL;
 }
