@@ -295,8 +295,11 @@ token_t *scan_comment(char cur_char)
             {
                 token->push_char(token, current);
                 token->type = COMMENT;
-                fseek(stdin, -1, SEEK_CUR);
                 token_end = true;
+            }
+            else if (token->type == COMMENT)
+            {
+                token->push_char(token, current);
             }
             else
             {
@@ -310,6 +313,11 @@ token_t *scan_comment(char cur_char)
                 token->type = COMMENT;
             }
             else if (token->type == COMMENT)
+            {
+                token->push_char(token, current);
+                token->type = POSSIBLE_COMMENT_END;
+            }
+            else if (token->type ==POSSIBLE_COMMENT_END)
             {
                 token->push_char(token, current);
                 token->type = POSSIBLE_COMMENT_END;
@@ -505,7 +513,9 @@ token_t *scan_slash(char cur_char)
 
 token_t *Scan(scanner_t *self)
 {
+    if (self->current_token != NULL){
     self->current_token->free(&self->current_token);
+    }
     char current_char;
     while (!feof(stdin))
     {
