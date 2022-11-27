@@ -1,9 +1,9 @@
 #include "symbol-table.h"
 #include <string.h>
 
-symbol_node_t *init_symbol_node(string name, string value, types_t type);
+symbol_node_t *init_symbol_node(string name, string value, arg_type type);
 
-enum SYMBOL_TABLE_T symbol_table_insert(symbol_table_t *self, string name, string value, types_t type)
+enum SYMBOL_TABLE_T symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type)
 {
     symbol_node_t *node = self->top;
     if (self->top == NULL)
@@ -119,7 +119,7 @@ void free_symbol_table(symbol_table_t **self)
     }
 }
 
-symbol_node_t *init_symbol_node(string name, string value, types_t type)
+symbol_node_t *init_symbol_node(string name, string value, arg_type type)
 {
     symbol_node_t *node = NULL;
     memo_allocate(node, symbol_node_t, 1);
@@ -133,7 +133,7 @@ symbol_node_t *init_symbol_node(string name, string value, types_t type)
     return node;
 }
 
-void push_scope(symbol_table_t **self, string name, types_t type)
+void push_scope(symbol_table_t **self, string name, arg_type type)
 {
     symbol_table_t *new_scope = init_symbol_table();
     memo_allocate(new_scope->scope_name, char, strlen(name));

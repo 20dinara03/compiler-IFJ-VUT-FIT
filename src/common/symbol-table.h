@@ -1,6 +1,7 @@
 #ifndef SYMBOL_TABLE
 #define SYMBOL_TABLE
 #include "../scanner/token.h"
+#include "../code_generation/code_templates.h"
 typedef struct symbol_table_t symbol_table_t;
 typedef struct symbol_node_t symbol_node_t;
 
@@ -19,7 +20,7 @@ struct symbol_node_t
     /*Variable's value*/
     string value;
     /*Variable's type*/
-    types_t type;
+    arg_type type;
     /*Left node*/
     symbol_node_t *left;
     /*Right node*/
@@ -38,7 +39,7 @@ struct symbol_table_t
     /*Name of the scope*/
     string scope_name;
     /*Type of the scope, if it's a function*/
-    types_t scope_type;
+    arg_type scope_type;
     /*Symbol table's top scope*/
     symbol_node_t *top;
     /*Symbol table's outer scope*/
@@ -53,7 +54,7 @@ struct symbol_table_t
      *
      * @return Symbol table's code
      */
-    enum SYMBOL_TABLE_T (*insert)(symbol_table_t *self, string var_name, string var_value, types_t var_type);
+    enum SYMBOL_TABLE_T (*insert)(symbol_table_t *self, string var_name, string var_value, arg_type var_type);
     /**
      * @brief Destructor for the symbol table, table will equal NULL
      *
@@ -65,7 +66,7 @@ struct symbol_table_t
      *
      * @param symbol_table_t pointer to a current symbol_table_t*
      */
-    void (*push_scope)(symbol_table_t **self,string scope_name, types_t scope_type);
+    void (*push_scope)(symbol_table_t **self,string scope_name, arg_type scope_type);
     /**
      * @brief Pops scope from top of the stack, if the stack is empty, table = NULL
      *
