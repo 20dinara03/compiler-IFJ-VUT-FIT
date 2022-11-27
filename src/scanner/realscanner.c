@@ -505,6 +505,7 @@ token_t *scan_slash(char cur_char)
 
 token_t *Scan(scanner_t *self)
 {
+    self->current_token->free(&self->current_token);
     char current_char;
     while (!feof(stdin))
     {
