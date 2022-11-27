@@ -28,6 +28,7 @@ typedef struct label_t {
     void (*free)(struct label_t *self);
 } label_t;
 label_t *new_label(code_stack_t *node, code_type name);
+label_t *new_simple_label(char *name);
 void free_label(label_t *self);
 
 typedef struct code_templater_t {
@@ -106,13 +107,13 @@ code_templater_t* new_code_templater();
 void free_code_templater(code_templater_t *templater);
 
 
-#define MAX_CODE_LINE_LENGTH 40
+#define MAX_CODE_LINE_LENGTH 80
 
 // 10.4.1 FRAMES
 #define CODE_FRAME_FUNCTION_WITH_2_ARGS_DEC(_name) char* code_##_name(arg_t *var, arg_t *symbol);
 #define CODE_FRAME_FUNCTION_WITH_2_ARGS(_name) char* code_##_name(arg_t *var, arg_t *symbol) {    \
     char *code_line = (char*)malloc(sizeof(char) * MAX_CODE_LINE_LENGTH);                       \
-    sprintf(code_line, "%s %s %s", #_name, var->name, symbol->name);                             \
+    sprintf(code_line, "%s %s %s\n", #_name, var->name, symbol->name);                             \
     var->free(var);                                                                             \
     symbol->free(symbol);                                                                       \
     return code_line;                                                                           \

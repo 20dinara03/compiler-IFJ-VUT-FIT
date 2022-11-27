@@ -9,7 +9,8 @@ typedef struct code_templater_t code_templater_t;
 typedef enum {
     IF,
     ELSE,
-    FUNCTION,
+    FUNCTION_DEC,
+    FUNCTION_CALL,
     WHILE,
     JUMPIFNEQ,
     LABEL_END,

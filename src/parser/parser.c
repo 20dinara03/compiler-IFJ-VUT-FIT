@@ -19,7 +19,7 @@
 #define new_code_frame self->current_block = self->code_stack->push(self->code_stack); bool pass;
 #define frame_add_line self->current_block->add_line
 #define as self->current_block, self->code_stack->templater->
-#define end_code_frame frame_add_line(as LABEL(label(LABEL_END))); self->code_stack->pop(self->code_stack, pass); self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
+#define end_code_frame self->code_stack->pop(self->code_stack, pass); self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
 
 
 define_logging(parser)
@@ -61,6 +61,8 @@ void destruct_parser(parser_t *self) {
         self->scanner->free(self->scanner);
     if (self->logger != NULL)
         free_parser_logging(self->logger);
+    if (self->code_stack != NULL)
+        self->code_stack->free(self->code_stack);
     if (self != NULL)
         free(self);
 }
@@ -84,8 +86,10 @@ bool _safe_and(parser_t *self, char *rule, code_type type, code_type type2) {
             new_arg(BOOL, "true")
             )
         );
-    } else if (type != NULLPTR) {
-        self->current_block->add_line(self->current_block, self->code_stack->templater->LABEL(new_label(self->code_stack, type)));
+    } else if (type == IF || type == WHILE) {
+        frame_add_line(as LABEL(new_label(self->code_stack, type)));
+    } else if (type == FUNCTION_CALL) {
+        frame_add_line(as CALL(new_simple_label(token->text)));
     }
     extra_logging; logging(rule); logging("\n");
     return true;
@@ -122,12 +126,15 @@ bool parseProg(parser_t *self) {
 
     extra_logging;
     logging_rule("prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending");
-    new_code_frame
-    pass = token_is("<?php") AND token_is("declare") AND token_is("(") AND token_is("strict_types")
-           AND token_is("=") AND token_is("1") AND token_is(")") AND token_is(";")
-           AND parseCodeLines(self) AND parseOptionalEnding(self);
-    end_code_frame
-    return pass;
+    if (token_is("<?php")) {
+        new_code_frame
+        pass = token_is("declare") AND token_is("(") AND token_is("strict_types")
+               AND token_is("=") AND token_is("1") AND token_is(")") AND token_is(";")
+               AND parseCodeLines(self) AND parseOptionalEnding(self);
+        end_code_frame
+        return pass;
+    }
+    return false;
 }
 
 bool parseOptionalEnding(parser_t *self) {
@@ -153,7 +160,6 @@ bool parseFunctionDefinition(parser_t *self) {
     logging_rule("function_definition ::= function_header '{' statements '}'");
 
     new_code_frame
-        frame_add_line(as LABEL(label(FUNCTION)));
         pass = parseFunctionHeader(self) AND token_is("{") AND parseStatements(self) AND token_is("}");
     end_code_frame
 
@@ -163,8 +169,16 @@ bool parseFunctionDefinition(parser_t *self) {
 bool parseFunctionHeader(parser_t *self) {
     extra_logging; 
 	logging_rule("function_header ::= 'function' function_identifier '(' function_params ')' optional_result_type");
-    return token_is("function") AND parseIdentifier(self) AND token_is("(")
-           AND parseFunctionParams(self) AND token_is(")") AND parseOptionalResultType(self);
+    if (token_is("function")) {
+        char function[strlen(token->text)];
+        strcpy(function, token->text);
+        frame_add_line(as LABEL(new_simple_label(function)));
+
+        bool pass = parseIdentifier(self) AND token_is("(")
+                AND parseFunctionParams(self) AND token_is(")") AND parseOptionalResultType(self);
+        return pass;
+    }
+    return false;
 }
 
 bool parseOptionalResultType(parser_t *self) {
@@ -189,17 +203,28 @@ bool parseFunctionParam(parser_t *self) {
     extra_logging; 
 	logging_rule("function_param ::= type variable_identifier");
 
-    bool pass = (parseType(self) AND parseIdentifier(self));
-    if (pass) {
-        frame_add_line(as POPS(new_arg(LF, token->text)));
+    if (parseType(self)) {
+        char identifier[strlen(token->text)];
+        strcpy(identifier, token->text);
+        bool pass = parseVariableIdentifier(self);
+        frame_add_line(as DEFVAR(new_arg(LF, identifier)));
+        frame_add_line(as POPS(new_arg(LF, identifier)));
+        return pass;
     }
-    return pass;
+    return false;
 }
 
 bool parseFunctionCall(parser_t *self) {
     extra_logging;
 	logging_rule("function_call ::= function_identifier '(' variable_func_identifiers ')'");
-    return parseIdentifier(self) AND token_is("(") AND parseVariableFuncIdentifiers(self) AND token_is(")");
+    char function_name[strlen(token->text) + 1];
+    strcpy(function_name, token->text);
+    if (parseIdentifier(self)) {
+        bool pass = token_is("(") AND parseVariableFuncIdentifiers(self) AND token_is(")");
+        frame_add_line(as CALL(new_simple_label(function_name)));
+        return pass;
+    }
+    return false;
 }
 
 bool parseVariableFuncIdentifiers(parser_t *self) {
@@ -217,7 +242,18 @@ bool parseVariableNIdentifier(parser_t *self) {
 bool parseVariableFuncIdentifier(parser_t *self) {
     extra_logging; 
 	logging_rule("variable_func_identifier ::= variable_identifier | expression");
-    return parseVariableIdentifier(self) OR parseExpression(self);
+
+    char identifier[strlen(token->text) + 1];
+    strcpy(identifier, token->text);
+    if (parseVariableIdentifier(self)) {
+        frame_add_line(as PUSHS(new_arg(LF, identifier)));
+        return true;
+    }
+    else if (parseExpression(self)) {
+        frame_add_line(as PUSHS(new_arg(TF, "result")));
+        return true;
+    }
+    return false;
 }
 
 bool parseStatements(parser_t *self) {
@@ -248,31 +284,35 @@ bool parseWhile(parser_t *self) {
     extra_logging;
 	logging_rule("while ::= 'while' '(' expression ')' '{' statements '}'");
 
-
-    new_code_frame
-    frame_add_line(as LABEL(label(WHILE)));
-    pass = token_is("while") AND token_is("(") AND parseExpression(self) AND token_is(")")
-        AND token_is("{") AND parseStatements(self) AND token_is("}");
-    end_code_frame
-    return pass;
+    if (token_is("while") AND true) {
+        new_code_frame
+            frame_add_line(as LABEL(label(WHILE)));
+            pass = token_is("(") AND parseExpression(self) AND token_is(")")
+                AND token_is("{") AND parseStatements(self) AND token_is("}");
+        end_code_frame
+        return pass;
+    }
+    return false;
 }
 
 bool parseCondition(parser_t *self) {
     extra_logging; 
 	logging_rule("condition ::= 'if' '(' expression ')' '{'  statements '}' condition_else");
 
-    new_code_frame
-    frame_add_line(self->current_block, self->code_stack->templater->LABEL(new_label(self->code_stack, IF)));
-        pass =  token_is("if")  AND
-                token_is("(")   AND
-        parseExpression(self)   AND
-                token_is(")")   JAND(ELSE)
-                token_is("{")   AND
-        parseStatements(self)   AND
-                token_is("}")   CAND(ELSE)
-        parseConditionElse(self);
-    end_code_frame
-    return pass;
+    if (token_is("if")) {
+        new_code_frame
+        frame_add_line(as LABEL(label(IF)));
+        pass = token_is("(") AND
+       parseExpression(self) AND
+               token_is(")") JAND(ELSE)
+               token_is("{") AND
+       parseStatements(self) AND
+               token_is("}") CAND(ELSE)
+       parseConditionElse(self);
+        end_code_frame
+        return pass;
+    }
+    return false;
 }
 
 bool parseConditionElse(parser_t *self) {
@@ -284,7 +324,14 @@ bool parseConditionElse(parser_t *self) {
 bool parseIdentifierAssignment(parser_t *self) {
     extra_logging;
 	logging_rule("identifier_assignment ::= variable_identifier assignment");
-    return parseVariableIdentifier(self) AND parseAssignment(self);
+    char variable_name[strlen(token->text) + 1];
+    strcpy(variable_name, token->text);
+    if (parseVariableIdentifier(self)) {
+        bool pass = parseAssignment(self);
+        frame_add_line(as MOVE(new_arg(TF, variable_name), new_arg(TF, "result")));
+        return pass;
+    }
+    return false;
 }
 
 bool parseAssignment(parser_t *self) {
@@ -297,7 +344,12 @@ bool parseAssignment(parser_t *self) {
 bool parseReturn(parser_t *self) {
     extra_logging; 
 	logging_rule("return ::= 'return' expression");
-    return token_is("return") AND parseExpression(self);
+    if (token_is("return")) {
+        bool pass = parseExpression(self);
+        frame_add_line(as RETURN());
+        return pass;
+    }
+    return false;
 }
 
 bool parseParenthesis(parser_t *self) {

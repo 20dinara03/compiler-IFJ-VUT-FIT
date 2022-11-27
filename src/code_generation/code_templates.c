@@ -29,7 +29,8 @@ label_t *new_label(code_stack_t *stack, code_type name) {
         [IF] = "IF",
         [ELSE] = "ELSE",
         [WHILE] = "WHILE",
-        [FUNCTION] = "FUNCTION",
+        [FUNCTION_DEC] = "FUNCTION_DEC",
+        [FUNCTION_CALL] = "FUNCTION_CALL",
         [LABEL_END] = "END",
         [NULLPTR] = "NULL",
     };
@@ -41,6 +42,14 @@ label_t *new_label(code_stack_t *stack, code_type name) {
     for (int i = 1; i < stack->size; i++) // i = 1 because stack[0] is global
         sprintf(self->name, "%s_%d", self->name, stack->blocks[i]->id);
 
+    return self;
+}
+
+label_t *new_simple_label(char *name) {
+    label_t *self = (label_t*)malloc(sizeof(label_t));
+    self->free = free_label;
+    self->name = malloc(strlen(name) + 1);
+    sprintf(self->name, "%s", name);
     return self;
 }
 
