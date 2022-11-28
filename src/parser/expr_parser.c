@@ -155,6 +155,8 @@ stack_symbols get_symbol_from_token(token_t *token)
         return STRING;
     case OPERATOR_POINT:
         return CONC;
+    // case IDENTIFIER:
+    //     if parseFunctionCall()
     default:
         return DOLLAR;
     }
@@ -330,6 +332,9 @@ bool expression(parser_t *parser)
     
     do
     {
+        if (!(parser->scanner->current_token->type == IDENTIFIER) && (parseFunctionCall(parser))){
+            FREE_STACK(false);
+        }
         actual_symbol = get_symbol_from_token(parser->scanner->current_token);
         top_stack_terminal = expr_stack_top_term(stack);
 
