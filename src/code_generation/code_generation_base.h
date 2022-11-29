@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define RESULT "%result%"
+
 typedef struct code_templater_t code_templater_t;
 
 typedef enum {
