@@ -9,6 +9,11 @@ FILE: str = "setup.env"
 class TestException(Exception):
     pass
 
+class Color:
+        GREEN = "\033[92m"
+        RED = "\033[91m"
+        END = "\033[0m"
+
 
 def read_file(path) -> list:
     with open(path) as f:
@@ -23,14 +28,15 @@ def run(_bin: str, scenario_dir: str, *, env: Optional[dict] = None) -> str:
         TestException: If the binary returns a non-zero exit code
     """
     sp = subprocess.Popen(
-        [_bin, scenario_dir],
+        [f"{_bin} < {scenario_dir}"],
+        shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
     )
     out, err = sp.communicate()
     if err:
-        raise TestException(err)
+        raise TestException(f"\n\033[91m{err.decode()}\tTest: ${scenario_dir}\033[0m")
     else:
         return out.decode()
 
@@ -71,10 +77,6 @@ def print_test_result(scenario: str, diff: str):
             else:
                 print(line)
 
-    class Color:
-        GREEN = "\033[92m"
-        RED = "\033[91m"
-        END = "\033[0m"
     if diff:
         print(f"{Color.RED}Test failed for {scenario}{Color.END}")
         print_diff()

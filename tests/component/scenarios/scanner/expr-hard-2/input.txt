@@ -1,0 +1,22 @@
+<?php
+declare(strict_types=1);
+/** string expr **/
+$str_1="Hello,";
+$var_2          = 
+"World!"
+;
+$concat=        $str_1.$str_2.
+" Random string is here"    ;
+write($concat,"\n")
+;/** int expr **/
+$a = 5;
+$b = 10;
+$c =999 ;
+
+$result = $a*(      
+(2+$b)/$c   )*$a-($b    +   $c*$a*    
+    (2+     2))
+    / 
+    $b;
+
+?>

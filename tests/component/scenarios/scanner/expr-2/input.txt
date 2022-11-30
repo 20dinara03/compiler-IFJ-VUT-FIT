@@ -1,0 +1,7 @@
+<?php
+declare(strict_types=1);
+$a = 2;
+$b = 2;
+$sum = $a + $b * 2;
+write($sum, "\n");
+?>
