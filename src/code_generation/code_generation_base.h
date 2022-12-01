@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define RESULT "%result%"
+#define FUN_RETURN "%return%"
 
 typedef struct code_templater_t code_templater_t;
 
@@ -47,6 +48,7 @@ typedef struct code_stack_t {
     code_block_t** blocks;
     int size;
     code_templater_t* templater;
+    bool active;
     code_block_t* (*push)(struct code_stack_t *self);
     void (*pop)(struct code_stack_t *self, bool release);
     void (*free)(struct code_stack_t *self);

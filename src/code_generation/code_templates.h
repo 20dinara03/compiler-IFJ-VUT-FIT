@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "code_generation_base.h"
+#include "../scanner/token.h"
 
 typedef enum {
     LF,
@@ -21,6 +22,7 @@ typedef struct arg_t {
     void (*free)(struct arg_t *self);
 } arg_t;
 arg_t *new_arg(arg_type frame, char *name);
+arg_type translate_token_type(types_t t_type);
 arg_t *new_simple_arg(char *name);
 void free_arg(arg_t *self);
 

@@ -24,20 +24,27 @@
 #define label(type) new_label(self->code_stack, type)
 #define simple_label(name) new_simple_label(name)
 
-#define new_code_frame self->current_block = self->code_stack->push(self->code_stack); bool pass;
 #define frame_add_line self->current_block->add_line
 #define as self->current_block, self->code_stack->templater->
-#define end_code_frame self->code_stack->pop(self->code_stack, pass); self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
+#define new_code_frame self->current_block = self->code_stack->push(self->code_stack);  \
+        bool pass;
 
+#define end_code_frame                                                                  \
+        self->code_stack->pop(self->code_stack, pass);                                  \
+        self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
 
 define_logging(parser)
 
 parser_t* init_parser(scanner_t* scanner) {
     parser_t *self = malloc(sizeof(parser_t));
-    self->code_stack = new_code_stack();
-    self->scanner = scanner;
-    self->parse = parse;
     self->logger = init_parser_logging();
+    self->scanner = scanner;
+    self->code_stack = new_code_stack();
+
+    if (!self->scanner->logger->active && !self->logger->active)
+        self->code_stack->active = true;
+
+    self->parse = parse;
     self->free = destruct_parser;
     return self;
 }
@@ -86,17 +93,11 @@ bool parse(parser_t *self) {
 }
 
 bool _safe_and(parser_t *self, char *rule, code_type type, code_type type2) {
-    if (type == JUMPIFNEQ) {
-        self->current_block->add_line(self->current_block, self->code_stack->templater->
-        JUMPIFNEQ(
-            new_label(self->code_stack, type2),
-            new_arg(TF, RESULT),
-            new_arg(BOOL, "true")
-            )
-        );
-    } else if (type == IF || type == WHILE) {
-        frame_add_line(as LABEL(new_label(self->code_stack, type)));
-    }
+    if (type == JUMPIFNEQ)
+        frame_add_line(as JUMPIFNEQ(label(type2), arg(TF, RESULT), arg(BOOL, "true")));
+    else if (type == IF || type == WHILE)
+        frame_add_line(as LABEL(label(type)));
+
     indirect_log(rule)
     return true;
 }
@@ -133,6 +134,8 @@ bool parseProg(parser_t *self) {
 
     if (token_is("<?php")) {
         new_code_frame
+        frame_add_line(as LABEL(simple_label(".IFJcode22")));
+        frame_add_line(as JUMP(simple_label("main")));
         pass = token_is("declare") AND token_is("(") AND token_is("strict_types")
                AND token_is("=") AND token_is("1") AND token_is(")") AND token_is(";")
                AND parseCodeLines(self) AND parseOptionalEnding(self);
@@ -162,6 +165,7 @@ bool parseFunctionDefinition(parser_t *self) {
 
     new_code_frame
         pass = parseFunctionHeader(self) AND token_is("{") AND parseStatements(self) AND token_is("}");
+    frame_add_line(as RETURN());
     end_code_frame
 
     return pass;
@@ -172,7 +176,7 @@ bool parseFunctionHeader(parser_t *self) {
     if (token_is("function")) {
         char function[strlen(token->text)];
         strcpy(function, token->text);
-        frame_add_line(as LABEL(new_simple_label(function)));
+        frame_add_line(as LABEL(simple_label(function)));
 
         bool pass = parseIdentifier(self) AND token_is("(")
                 AND parseFunctionParams(self) AND token_is(")") AND parseOptionalResultType(self);
@@ -203,8 +207,8 @@ bool parseFunctionParam(parser_t *self) {
         char identifier[strlen(token->text)];
         strcpy(identifier, token->text);
         bool pass = parseVariableIdentifier(self);
-        frame_add_line(as DEFVAR(new_arg(LF, identifier)));
-        frame_add_line(as POPS(new_arg(LF, identifier)));
+        frame_add_line(as DEFVAR(new_arg(TF, identifier)));
+        frame_add_line(as POPS(new_arg(TF, identifier)));
         return pass;
     }
     return false;
@@ -220,7 +224,12 @@ bool parseFunctionCall(parser_t *self) {
         if (token_is("("))                                                  // skip "(" token and
             strcpy(param, token->text);                            // save first param in case of empty params
 
+        frame_add_line(as DEFVAR(simple_arg(FUN_RETURN)));
+        frame_add_line(as PUSHFRAME());
+        frame_add_line(as CREATEFRAME());
+
         bool pass = parseVariableFuncIdentifiers(self, built_in) AND token_is(")");   // parse next rules
+
         if (equal(function_name, "write"))
             frame_add_line(as WRITE(new_arg(TF, RESULT)));
         else if(equal(function_name, "read"))
@@ -228,8 +237,11 @@ bool parseFunctionCall(parser_t *self) {
             frame_add_line(as READ(new_arg(TF, RESULT), new_arg(STRING, "int")));
         else if(equal(function_name, "exit"))
             frame_add_line(as EXIT(simple_arg(param)));
-        else
-            frame_add_line(as CALL(new_simple_label(function_name)));
+        else {
+            frame_add_line(as CALL(simple_label(function_name)));
+        }
+
+        frame_add_line(as POPFRAME());
         return pass;
     }
     return false;
@@ -250,13 +262,20 @@ bool parseVariableFuncIdentifier(parser_t *self, bool built_in) {
 
     char identifier[strlen(token->text) + 1];
     strcpy(identifier, token->text);
+
+    types_t token_type = token->type;
+
     if (parseVariableIdentifier(self)) {
         if (!built_in)
             frame_add_line(as PUSHS(new_arg(LF, identifier)));
         return true;
     }
+
     else if (parseExpression(self)) {
-        if (!built_in)
+        if (token_type == STRING_LITERAL || token_type == INT_LITERAL || token_type == DOUBLE_LITERAL) {
+            frame_add_line(as PUSHS(new_arg(translate_token_type(token_type), identifier)));
+        }
+        else if (!built_in)
             frame_add_line(as PUSHS(new_arg(TF, RESULT)));
         return true;
     }
@@ -270,6 +289,7 @@ bool parseStatements(parser_t *self) {
 
 bool parseStatement(parser_t *self) {
     log("statement ::= strict_statement ';' | optional_statement")
+    // TODO: check parse strict statement without ';' then we can parse optional statement and get true
     return (parseStrictStatement(self) AND token_is(";")) OR parseOptionalStatement(self);
 }
 
@@ -286,11 +306,13 @@ bool parseOptionalStatement(parser_t *self) {
 bool parseWhile(parser_t *self) {
     log("while ::= 'while' '(' expression ')' '{' statements '}'")
 
-    if (token_is("while") AND true) {
+    if (token_is("while")) {
         new_code_frame
+            frame_add_line(as PUSHFRAME());
             frame_add_line(as LABEL(label(WHILE)));
             pass = token_is("(") AND parseExpression(self) AND token_is(")")
                 AND token_is("{") AND parseStatements(self) AND token_is("}");
+            frame_add_line(as POPFRAME());
         end_code_frame
         return pass;
     }
@@ -302,6 +324,7 @@ bool parseCondition(parser_t *self) {
 
     if (token_is("if")) {
         new_code_frame
+        frame_add_line(as PUSHFRAME());
         frame_add_line(as LABEL(label(IF)));
         pass = token_is("(") AND
        parseExpression(self) AND
@@ -310,6 +333,7 @@ bool parseCondition(parser_t *self) {
        parseStatements(self) AND
                token_is("}") CAND(ELSE)
        parseConditionElse(self);
+        frame_add_line(as POPFRAME());
         end_code_frame
         return pass;
     }
@@ -342,7 +366,6 @@ bool parseReturn(parser_t *self) {
     log("return ::= 'return' expression")
     if (token_is("return")) {
         bool pass = parseExpression(self);
-        frame_add_line(as RETURN());
         return pass;
     }
     return false;
@@ -375,7 +398,7 @@ bool parseExpression(parser_t *self) {
 
 bool parseType(parser_t *self) {
     char* rule = "type ::= 'int' | 'float' | 'string' | 'bool' | '?int' | '?float' | '?string' | '?bool'";
-    return token_is("int") OR token_is("float") OR token_is("string") OR token_is("bool")
+    return token_is("int") OR token_is("float") OR token_is("string") OR token_is("bool") OR token_is("void")
         OR token_is("?int") OR token_is("?float") OR token_is("?string") OR token_is("?bool");
 }
 

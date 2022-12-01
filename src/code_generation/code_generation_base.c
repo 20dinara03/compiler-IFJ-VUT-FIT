@@ -14,7 +14,8 @@ code_line_t* new_code_line(char* line) {
 void destruct_code_line(code_line_t *self) {
     free(self->line);
     self->line = NULL;
-    free(self);
+    if (self != NULL)
+        free(self);
     self = NULL;
 }
 
@@ -94,7 +95,7 @@ void destruct_code_stack(code_stack_t *self) {
 code_block_t* code_stack_push(code_stack_t *self) {
     self->blocks = realloc(self->blocks, sizeof(code_block_t*) * (self->size + 1));
     self->blocks[self->size] = new_code_block(++self->id);
-    if (self->size > 0) {
+    if (self->size > 0 && self->active) {
         self->blocks[self->size - 1]->release(self->blocks[self->size - 1]);
     }
     return self->blocks[self->size++];
@@ -102,7 +103,7 @@ code_block_t* code_stack_push(code_stack_t *self) {
 
 void code_stack_pop(code_stack_t *self, bool release) {
     --self->size;
-    if (release)
+    if (release && self->active)
         self->blocks[self->size]->release(self->blocks[self->size]);
     self->blocks[self->size]->free(self->blocks[self->size]);
     self->blocks[self->size] = NULL;

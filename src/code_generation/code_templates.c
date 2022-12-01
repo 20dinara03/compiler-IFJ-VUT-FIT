@@ -21,6 +21,15 @@ arg_t* new_arg(arg_type frame, char *name) {
     return self;
 }
 
+arg_type translate_token_type(types_t t_type) {
+    arg_type dictionary[DOUBLE_LITERAL + 1] = {
+            [STRING_LITERAL] = STRING,
+            [INT_LITERAL] = INT,
+            [DOUBLE_LITERAL] = FLOAT,
+    };
+    return dictionary[t_type];
+}
+
 void free_arg(arg_t *self) {
     free(self->name);
     free(self);
