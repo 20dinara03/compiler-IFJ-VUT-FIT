@@ -432,9 +432,9 @@ bool parseReturn(parser_t *self) {
 
 
 bool parseExpression(parser_t *self) {
-    bool result = expression(self);
-    printf("%d \n",result);
-    return result;
+    log("expression")
+    //printf("66666666666666666666");
+    return expression(self);
 }
 
 bool parseType(parser_t *self) {

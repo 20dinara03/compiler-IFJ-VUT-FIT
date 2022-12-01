@@ -12,12 +12,22 @@ int prec_table[8][8] =
     {
         {R, L, R, L, R, L, N, R},
         {R, R, R, L, R, L, N, R},
-        {L, L, N, L, R, L, L, R},
+        {L, L, R, L, R, L, L, R},
         {L, L, L, L, E, L, L, N},
         {R, R, R, N, R, N, R, R},
-        {R, R, R, N, R, N, N, R},
-        {N, N, R, L, R, N, R, R},
+        {R, R, R, N, R, N, R, R},
+        {N, N, R, L, R, L, R, R},
         {L, L, L, L, N, L, L, N}};
+
+//   //|+- | */| r | ( | ) | i |   $ |
+// 	{ R , S , S , S , R , S ,   R }, /// +-
+// 	{ R , R , R , S , R , S ,   R }, /// */
+// 	{ S , S , S , S , R , S ,   R }, /// r (realtion operators) = <> <= < >= >
+// 	{ S , S , S , S , E , S ,   N }, /// (
+// 	{ R , R , R , N , R , N ,   R }, /// )
+// 	{ R , R , R , N , R , N ,   R }, /// i (id, int, double, string)
+
+// 	{ S , S , S , S , N , S ,   N }  /// $
 
 void expr_stack_init(expr_stack_t *stack)
 {
@@ -112,8 +122,7 @@ bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol)
 
 void expr_stack_free(expr_stack_t *stack)
 {
-    while (expr_stack_pop(stack))
-        ;
+    while (expr_stack_pop(stack));
 }
 // stack
 
@@ -152,7 +161,9 @@ stack_symbols get_symbol_from_token(token_t *token)
     case DOUBLE_LITERAL:
         return DOUBLE_NUMBER;
     case STRING_LITERAL:
-        return STRING;
+        return STRING_LINE;
+    case KEYWORD_NULL:
+        return NULL_TYPE;
     case OPERATOR_POINT:
         return CONC;
     // case IDENTIFIER:
@@ -186,7 +197,8 @@ prec_table_index get_prec_table_index(stack_symbols symbol)
     case ID:
     case INT_NUMBER:
     case DOUBLE_NUMBER:
-    case STRING:
+    case STRING_LINE:
+    case NULL_TYPE:
         return PREC_ID;
     case CONC:
         return PREC_CONC;
@@ -225,7 +237,7 @@ bool test_rule(int num, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_sta
     {
     case 1:
         // rule E -> i
-        if (op1->symbol == ID || op1->symbol == INT_NUMBER || op1->symbol == DOUBLE_NUMBER || op1->symbol == STRING)
+        if (op1->symbol == ID || op1->symbol == INT_NUMBER || op1->symbol == DOUBLE_NUMBER || op1->symbol == STRING_LINE)
             return true;
 
         return false;
@@ -319,9 +331,9 @@ void print_stack(expr_stack_t* stack){
 
 bool expression(parser_t *parser)
 {
+    int count_brackets = 0;
     expr_stack_t *stack = (expr_stack_t *)malloc(sizeof(expr_stack_t));
     expr_stack_init(stack);
-
     if (!expr_stack_push(stack, DOLLAR))
         FREE_STACK(false);
 
@@ -329,59 +341,115 @@ bool expression(parser_t *parser)
     stack_symbols actual_symbol;
 
     bool success = false;
-    
     do
     {
-        if (!(parser->scanner->current_token->type == IDENTIFIER) && (parseFunctionCall(parser))){
-            FREE_STACK(false);
+        if ((parser->scanner->current_token->type == IDENTIFIER)){
+            if (!parseFunctionCall(parser)){
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("false1\n");
+                FREE_STACK(false);
+            }
+            else{
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("true1\n");
+                expr_stack_free(stack);
+                return true;
+            }
         }
+
+        //printf("bravck %d\n", count_brackets);
         actual_symbol = get_symbol_from_token(parser->scanner->current_token);
         top_stack_terminal = expr_stack_top_term(stack);
 
-        if (top_stack_terminal == NULL)
+        if (top_stack_terminal == NULL){
+            //printf("%d",parser->scanner->current_token->type);
+            //printf("false1\n");
             FREE_STACK(false);
-        // print_stack(stack);
-        // printf("Vstup %d\n",actual_symbol);
+        }
+        //print_stack(stack);
+        //printf("Vstup %d\n",actual_symbol);
+        // //printf("brscket %d\n",count_brackets);
         switch (prec_table[get_prec_table_index(top_stack_terminal->symbol)][get_prec_table_index(actual_symbol)])
         {
         case L:
-            if (!expr_stack_insert_after_term(stack, STOP))
+            if (!expr_stack_insert_after_term(stack, STOP)){
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("false3\n");
                 FREE_STACK(false);
+            }
 
-            if (!expr_stack_push(stack, actual_symbol))
+            if (!expr_stack_push(stack, actual_symbol)){
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("false4\n");
                 FREE_STACK(false);
+            }
 
-            if ((!parser->scanner->get_next_token()))
+            if ((!parser->scanner->get_next_token(parser->scanner))){
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("false5\n");
                 FREE_STACK(false);
+            }
             break;
 
         case E:
             expr_stack_push(stack, actual_symbol);
 
-            if ((!parser->scanner->get_next_token()))
+            if ((!parser->scanner->get_next_token(parser->scanner))){
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("false6\n");
                 FREE_STACK(false);
+            }
             break;
 
         case R:
-            if ((!reduce_by_rule(stack)))
+            if ((!reduce_by_rule(stack))){
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("false7\n");
                 FREE_STACK(false);
+            }
             break;
 
         case N:
             if (actual_symbol == DOLLAR && top_stack_terminal->symbol == DOLLAR)
                 success = true;
-            else
+            else{
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("false8\n");
                 FREE_STACK(false);
+            }
             break;
+        }
+        if ((expr_stack_top(stack)->symbol != E_NONTERM) && (parser->scanner->current_token->type == OPERATOR_LEFT_BRACKET)){
+            count_brackets += 1;
+        }
+        if ((expr_stack_top(stack)->symbol != E_NONTERM) && (parser->scanner->current_token->type == OPERATOR_RIGHT_BRACKET)){
+            count_brackets -= 1;
+            if (count_brackets < 0){
+                // //printf("%d",parser->scanner->current_token->type);
+                // //printf("false2\n");
+                expr_stack_free(stack);
+                return true;
+            }
         }
     } while (!success);
 
-
+    // //printf("%d", expr_stack_top(stack)->symbol);
 
     expr_stack_item_t *final_non_terminal = expr_stack_top(stack);
-    if (final_non_terminal == NULL)
+    if (final_non_terminal == NULL){
+        //printf("%d",parser->scanner->current_token->type);
+        //printf("false9\n");
         FREE_STACK(false);
-    if (final_non_terminal->symbol != E_NONTERM)
+    }
+    if (final_non_terminal->symbol != E_NONTERM){
+        //printf("%d",parser->scanner->current_token->type);
+        //printf("false10\n");
         FREE_STACK(false);
+    }
+    //printf("%d",parser->scanner->current_token->type);
+    //printf("true10\n");
+
+    
+    expr_stack_free(stack);
     return true;
 }

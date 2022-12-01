@@ -44,7 +44,8 @@ typedef enum
 	ID,		// ID
 	INT_NUMBER,		// int
 	DOUBLE_NUMBER,	// double
-	STRING,			// string
+	STRING_LINE,			// string
+    NULL_TYPE,
 	DOLLAR,			// $
 	STOP,			// <
 	E_NONTERM		// non-terminal
