@@ -317,7 +317,7 @@ token_t *scan_comment(char cur_char)
                 token->push_char(token, current);
                 token->type = POSSIBLE_COMMENT_END;
             }
-            else if (token->type ==POSSIBLE_COMMENT_END)
+            else if (token->type == POSSIBLE_COMMENT_END)
             {
                 token->push_char(token, current);
                 token->type = POSSIBLE_COMMENT_END;
@@ -341,7 +341,6 @@ token_t *scan_comment(char cur_char)
                 token->type = OPERATOR_DIVIDE;
                 fseek(stdin, -1, SEEK_CUR);
                 token_end = true;
-
             }
             else if (token->type == POSSIBLE_COMMENT_END)
             {
@@ -513,8 +512,9 @@ token_t *scan_slash(char cur_char)
 
 token_t *Scan(scanner_t *self)
 {
-    if (self->current_token != NULL){
-    self->current_token->free(&self->current_token);
+    if (self->current_token != NULL)
+    {
+        self->current_token->free(&self->current_token);
     }
     char current_char;
     while (!feof(stdin))
@@ -629,7 +629,7 @@ scanner_t *init_scanner()
 {
     scanner_t *self = NULL;
 
-    memo_allocate(self, scanner_t, 1);
+    malloc_s(self, scanner_t, 1);
 
     self->get_next_token = Scan;
     self->white_space_reading = true;

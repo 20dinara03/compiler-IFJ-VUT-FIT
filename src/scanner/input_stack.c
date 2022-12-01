@@ -4,7 +4,7 @@ input_node_t *init_input_node(token_t *token)
 {
     input_node_t *node = NULL;
 
-    memo_allocate(node, input_node_t, 1);
+    malloc_s(node, input_node_t, 1);
 
     node->token = token;
 
@@ -50,7 +50,7 @@ input_stack_t *init_input_stack()
 {
     input_stack_t *stack = NULL;
 
-    memo_allocate(stack, input_stack_t, 1);
+    malloc_s(stack, input_stack_t, 1);
 
     stack->push = push_token_in_stack;
     stack->free = free_stack;

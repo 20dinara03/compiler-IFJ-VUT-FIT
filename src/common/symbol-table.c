@@ -1,58 +1,78 @@
 #include "symbol-table.h"
 #include <string.h>
 
-symbol_node_t *init_symbol_node(string name, string value, arg_type type);
+static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name);
+static symbol_table_types symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type, bool is_function);
+static void free_symbol_node(symbol_node_t **self);
+static symbol_node_t *init_symbol_node(string name, string value, arg_type type, arg_type frame, bool is_function);
 
-enum SYMBOL_TABLE_T symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type)
+/**
+ * @brief Destructor for the tree to this node
+ *
+ * @param self pointer to a current symbol_table_t
+ * @param name variable's name
+ * @param value variable's value
+ * @param type variable's type
+ *
+ * @return Symbol table's code
+ */
+static symbol_table_types symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type, bool is_function)
 {
-    symbol_node_t *node = self->top;
+    symbol_node_t *node = NULL;
+    symbol_variable_t *var = NULL;
+
+    if ((var = symbol_table_find(self, name)) != NULL)
+    {
+        return var->assign(var, value, type);
+    }
     if (self->top == NULL)
     {
-        self->top = init_symbol_node(name, value, type);
+        self->top = init_symbol_node(name, value, type, self->frame,is_function);
     }
-    else
+    while (node != NULL)
     {
-        while (node != NULL)
+        if (strcmp(name, node->var->name) < 0)
         {
-            if (strcmp(name, node->name) < 0)
+            if (node->left == NULL)
             {
-                if (node->left == NULL)
-                {
-                    node->left = init_symbol_node(name, value, type);
-                    break;
-                }
-                else
-                {
-                    node = node->left;
-                }
-            }
-            else if (strcmp(name, node->name) > 0)
-            {
-                if (node->right == NULL)
-                {
-                    node->right = init_symbol_node(name, value, type);
-                    break;
-                }
-                else
-                {
-                    node = node->right;
-                }
+                node->left = init_symbol_node(name, value, type, self->frame,is_function);
+                return ST_INSERT;
             }
             else
             {
-                if (node->type != type)
-                {
-                    return ST_ERR_TYPE; // Type error
-                }
-                strcpy(node->value, value);
-                break;
+                node = node->left;
             }
         }
+        else if (strcmp(name, node->var->name) > 0)
+        {
+            if (node->right == NULL)
+            {
+                node->right = init_symbol_node(name, value, type, self->frame,is_function);
+                return ST_INSERT;
+            }
+            else
+            {
+                node = node->left;
+            }
+        }
+        else
+        {
+            return node->var->assign(node->var, value, type);
+        }
     }
-    return ST_SUCCESS;
+
+    return ST_INSERT;
 }
 
-symbol_node_t *symbol_table_find(symbol_table_t *self, string name)
+/**
+ * @brief Finds variable node by name
+ *
+ * @param symbol_node_t pointer to a current symbol_table_t
+ * @param name variable's name
+ *
+ * @return symbol table's node from bst with the variable or NULL
+ */
+static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
 {
     if (self == NULL)
     {
@@ -63,10 +83,9 @@ symbol_node_t *symbol_table_find(symbol_table_t *self, string name)
         return symbol_table_find(self->next, name);
     }
     symbol_node_t *node = self->top;
-
     while (node != NULL)
     {
-        if (strcmp(name, node->name) < 0)
+        if (strcmp(name, node->var->name) < 0)
         {
             if (node->left == NULL)
             {
@@ -77,7 +96,7 @@ symbol_node_t *symbol_table_find(symbol_table_t *self, string name)
                 node = node->left;
             }
         }
-        else if (strcmp(name, node->name) > 0)
+        else if (strcmp(name, node->var->name) > 0)
         {
             if (node->right == NULL)
             {
@@ -90,61 +109,55 @@ symbol_node_t *symbol_table_find(symbol_table_t *self, string name)
         }
         else
         {
-            return node;
+            return node->var;
         }
     }
     return NULL;
 }
 
-void free_symbol_node(symbol_node_t **self)
+/**
+ * @brief Destructor for the tree to this node
+ *
+ * @param symbol_node_t pointer to a current symbol_node_t*
+ */
+static void free_symbol_node(symbol_node_t **self)
 {
-    if (*self == NULL)
+#define self (*self)
+    if (self == NULL)
         return;
 
-    free_symbol_node(&(*self)->left);
-    free_symbol_node(&(*self)->right);
+    free_symbol_node(&self->left);
+    free_symbol_node(&self->right);
 
-    free((*self)->name);
-    free((*self)->value);
-    free(*self);
+    self->var->free(&self->var);
+    free(self);
 
-    *self = NULL;
+    self = NULL;
+#undef self
 }
 
-void free_symbol_table(symbol_table_t **self)
+/**
+ * @brief Adds scope on top of the stack
+ *
+ * @param symbol_table_t pointer to a current symbol_table_t*
+ */
+static void push_frame(symbol_table_t **self, string name, arg_type type)
 {
-    while (*self != NULL)
-    {
-        (*self)->pop_scope(self);
-    }
-}
-
-symbol_node_t *init_symbol_node(string name, string value, arg_type type)
-{
-    symbol_node_t *node = NULL;
-    memo_allocate(node, symbol_node_t, 1);
-    memo_allocate(node->name, char, strlen(name));
-    memo_allocate(node->value, char, strlen(value));
-    strcpy(node->name, name);
-    strcpy(node->value, value);
-    node->type = type;
-    node->left = node->right = NULL;
-    node->free = free_symbol_node;
-    return node;
-}
-
-void push_scope(symbol_table_t **self, string name, arg_type type)
-{
-    symbol_table_t *new_scope = init_symbol_table();
-    memo_allocate(new_scope->scope_name, char, strlen(name));
-    strcpy(new_scope->scope_name, name);
+    symbol_table_t *new_scope = init_symbol_table(TF);
+    malloc_s(new_scope->frame_name, char, strlen(name));
+    strcpy(new_scope->frame_name, name);
     new_scope->top = NULL;
     new_scope->scope_type = type;
     new_scope->next = *self;
     *self = new_scope;
 }
 
-void pop_scope(symbol_table_t **self)
+/**
+ * @brief Pops scope from top of the stack, if the stack is empty, table = NULL
+ *
+ * @param symbol_table_t pointer to a current symbol_table_t*
+ */
+static void pop_frame(symbol_table_t **self)
 {
     if (*self != NULL)
     {
@@ -154,23 +167,49 @@ void pop_scope(symbol_table_t **self)
         {
             delete_scope->top->free(&delete_scope->top);
         }
-        free(delete_scope->scope_name);
+        free(delete_scope->frame_name);
         free(delete_scope);
     }
 }
 
-symbol_table_t *init_symbol_table()
+/**
+ * @brief Destructor for the symbol table, table will equal NULL
+ *
+ * @param symbol_table_t pointer to a current symbol_table_t*
+ */
+static void free_symbol_table(symbol_table_t **self)
+{
+
+    while (*self != NULL)
+    {
+        (*self)->pop_frame(self);
+    }
+}
+
+static symbol_node_t *init_symbol_node(string name, string value, arg_type type, arg_type frame, bool is_function)
+{
+    symbol_node_t *node = NULL;
+    malloc_s(node, symbol_node_t, 1);
+    node->left = NULL;
+    node->right = NULL;
+    node->var = init_symbol_variable(name, value, type, frame, is_function);
+    node->free = free_symbol_node;
+    return node;
+}
+
+symbol_table_t *init_symbol_table(arg_type frame)
 {
     symbol_table_t *table = NULL;
-    memo_allocate(table, symbol_table_t, 1);
+    malloc_s(table, symbol_table_t, 1);
     table->scope_type = NONE;
-    table->scope_name = NULL;
+    table->frame = frame;
     table->top = NULL;
     table->next = NULL;
+    table->frame_name = NULL;
     table->insert = symbol_table_insert;
     table->free = free_symbol_table;
-    table->push_scope = push_scope;
-    table->pop_scope = pop_scope;
+    table->push_frame = push_frame;
+    table->pop_frame = pop_frame;
     table->find = symbol_table_find;
     return table;
 }
