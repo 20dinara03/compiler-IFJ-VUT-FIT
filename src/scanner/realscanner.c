@@ -13,9 +13,14 @@
     token->push_char(token, cur_char); \
     bool token_end = false;            \
     token_end = token_end;
-#define fseek_and_token_end()   \
-    fseek(stdin, -1, SEEK_CUR); \
-    token_end = true;
+#define fseek_and_token_end(current)   \
+    if (current != EOF){ \
+     fseek(stdin, -1, SEEK_CUR); \
+     token_end = true; \
+    } \
+    else{ \
+     token_end = true; \
+    }
 
 define_logging(scanner)
 
@@ -87,7 +92,7 @@ token_t *scan_number(char cur_char)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current)
             }
             break;
         case 'E':
@@ -99,7 +104,7 @@ token_t *scan_number(char cur_char)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         case '+':
@@ -111,11 +116,17 @@ token_t *scan_number(char cur_char)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current)
             }
             break;
         default:
-            fseek_and_token_end()
+         if (current != EOF){
+            fseek_and_token_end(current)
+         }
+         else
+         {
+            token_end = true;
+         }
         }
     }
     return (token);
@@ -128,6 +139,7 @@ token_t *scan_identifier(char cur_char)
     while (!token_end)
     {
         char current = (char)fgetc(stdin);
+
         switch (current)
         {
         case 'A' ... 'Z':
@@ -138,7 +150,7 @@ token_t *scan_identifier(char cur_char)
             break;
         default:
             check_identifier(token);
-            fseek_and_token_end()
+            fseek_and_token_end(current);
         }
     }
     return (token);
@@ -151,6 +163,7 @@ token_t *scan_variable_identifier(char cur_char)
     while (!token_end)
     {
         char current = (char)fgetc(stdin);
+
         switch (current)
         {
         case 'A' ... 'Z':
@@ -160,7 +173,7 @@ token_t *scan_variable_identifier(char cur_char)
             token->push_char(token, current);
             break;
         default:
-            fseek_and_token_end()
+            fseek_and_token_end(current);
         }
     }
     return (token);
@@ -173,6 +186,7 @@ token_t *scan_head(char cur_char, scanner_t *self)
     while (!token_end)
     {
         char current = (char)fgetc(stdin);
+
         switch (current)
         {
         case '?':
@@ -183,7 +197,7 @@ token_t *scan_head(char cur_char, scanner_t *self)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         case 'p':
@@ -201,7 +215,7 @@ token_t *scan_head(char cur_char, scanner_t *self)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         case 'h':
@@ -212,7 +226,7 @@ token_t *scan_head(char cur_char, scanner_t *self)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         case '=':
@@ -224,7 +238,7 @@ token_t *scan_head(char cur_char, scanner_t *self)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         default:
@@ -232,7 +246,7 @@ token_t *scan_head(char cur_char, scanner_t *self)
             {
                 token->type = OPERATOR_LESS;
             }
-            fseek_and_token_end()
+            fseek_and_token_end(current);
         }
     }
     return (token);
@@ -245,6 +259,7 @@ token_t *scan_end(char cur_char, scanner_t *self)
     while (!token_end)
     {
         char current = (char)fgetc(stdin);
+
         switch (current)
         {
         case '>':
@@ -257,7 +272,7 @@ token_t *scan_end(char cur_char, scanner_t *self)
             }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         case 'A' ... 'Z':
@@ -270,7 +285,7 @@ token_t *scan_end(char cur_char, scanner_t *self)
             {
                 check_identifier(token);
             }
-            fseek_and_token_end()
+            fseek_and_token_end(current);
         }
     }
     return (token);
@@ -283,6 +298,7 @@ token_t *scan_comment(char cur_char)
     while (!token_end)
     {
         char current = (char)fgetc(stdin);
+
         switch (current)
         {
         case '/':
@@ -301,9 +317,13 @@ token_t *scan_comment(char cur_char)
             {
                 token->push_char(token, current);
             }
+            else if (token->type == COMMENT_LINE)
+            {
+                token->push_char(token, current);
+            }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         case '*':
@@ -322,9 +342,13 @@ token_t *scan_comment(char cur_char)
                 token->push_char(token, current);
                 token->type = POSSIBLE_COMMENT_END;
             }
+            else if (token->type == COMMENT_LINE)
+            {
+                token->push_char(token, current);
+            }
             else
             {
-                fseek_and_token_end()
+                fseek_and_token_end(current);
             }
             break;
         case '\n':
@@ -363,6 +387,7 @@ token_t *scan_operator(char cur_char, types_t type)
     while (!token_end)
     {
         char current = (char)fgetc(stdin);
+
         switch (current)
         {
         case '=':
@@ -404,7 +429,7 @@ token_t *scan_operator(char cur_char, types_t type)
             }
             break;
         default:
-            fseek_and_token_end()
+            fseek_and_token_end(current);
         }
     }
     return (token);
@@ -417,6 +442,7 @@ token_t *scan_string(char cur_char)
     while (!token_end)
     {
         char current = (char)fgetc(stdin);
+
         if (current == '\"')
         {
             token->push_char(token, current);
@@ -504,7 +530,7 @@ token_t *scan_slash(char cur_char)
             }
             break;
         default:
-            fseek_and_token_end()
+            fseek_and_token_end(current);
         }
     }
     return (token);
@@ -516,9 +542,9 @@ token_t *Scan(scanner_t *self)
     {
         self->current_token->free(&self->current_token);
     }
-    char current_char;
     while (!feof(stdin))
     {
+        char current_char;
         current_char = (char)fgetc(stdin);
         switch (current_char)
         {
@@ -622,8 +648,8 @@ token_t *Scan(scanner_t *self)
         }
         return self->current_token;
     }
-    self->current_token = NULL;
-    return NULL;
+ self->current_token = NULL;
+ return self->current_token;
 }
 scanner_t *init_scanner()
 {
@@ -637,14 +663,12 @@ scanner_t *init_scanner()
     self->logger = get_logging(scanner);
     return self;
 }
-void destruct_scanner_t(scanner_t *scanner)
+void destruct_scanner_t(scanner_t *self)
 {
-    if (scanner != NULL)
+    if (self != NULL)
     {
-        if (scanner->logger != NULL)
-            free_scanner_logging(scanner->logger);
-        if (scanner->current_token != NULL)
-            scanner->current_token->free(&scanner->current_token);
-        free(scanner);
+        if (self->logger != NULL)
+         free_scanner_logging(self->logger);
+        free(self);
     }
 }
