@@ -6,16 +6,20 @@ static symbol_table_types symbol_table_insert(symbol_table_t *self, string name,
 static void free_symbol_node(symbol_node_t **self);
 static symbol_node_t *init_symbol_node(string name, string value, arg_type type, arg_type frame, bool is_function);
 
-const char *frame_str[] = {
-    [LF] = "LF",
-    [TF] = "TF",
-    [GF] = "GF",
-    [INT] = "INT",
-    [FLOAT] = "FLOAT",
-    [STRING] = "STRING",
-    [BOOL] = "BOOL",
-    [NIL] = "NULL",
-};
+static string type_to_string(arg_type type)
+{
+    char *to_string[] = {
+        [LF] = "LF",
+        [TF] = "TF",
+        [GF] = "GF",
+        [INT] = "INT",
+        [FLOAT] = "FLOAT",
+        [STRING] = "STRING",
+        [BOOL] = "BOOL",
+        [NIL] = "NULL",
+    };
+    return to_string[type];
+}
 
 /**
  * @brief Destructor for the tree to this node
@@ -127,6 +131,16 @@ static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
     return NULL;
 }
 
+static arg_type symbol_table_find_g(symbol_table_t *self, string name)
+{
+    symbol_variable_t *var = symbol_table_find(self, name);
+
+    if (var == NULL)
+        return -1;
+
+    return var->frame;
+}
+
 /**
  * @brief Destructor for the tree to this node
  *
@@ -134,18 +148,16 @@ static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
  */
 static void free_symbol_node(symbol_node_t **self)
 {
-#define self (*self)
-    if (self == NULL)
+    if (*self == NULL)
         return;
 
-    free_symbol_node(&self->left);
-    free_symbol_node(&self->right);
+    free_symbol_node(&(*self)->left);
+    free_symbol_node(&(*self)->right);
 
-    self->var->free(&self->var);
+    (*self)->var->free(&(*self)->var);
     free(self);
 
     self = NULL;
-#undef self
 }
 
 /**
@@ -188,12 +200,12 @@ static void symbol_table_traverse(symbol_node_t *root)
 {
     if (root != NULL)
     {
-        printf("   %s|%s: %s = %s ", frame_str[root->var->frame], root->var->name, frame_str[root->var->type], root->var->value);
+        printf("   %s|%s: %s = %s ", type_to_string(root->var->frame), root->var->name, type_to_string(root->var->type), root->var->value);
         if (root->var->is_function)
         {
             printf("( ");
-            for (symbol_variable_t *arg = root->var->args_list; arg != NULL; arg = arg->args_list)
-                printf("%s|%s: %s = %s, ", frame_str[arg->frame], arg->name, frame_str[arg->type], arg->value);
+            for (symbol_variable_t *arg = root->var->arg_next; arg != NULL; arg = arg->arg_next)
+                printf("%s|%s: %s = %s, ", type_to_string(arg->frame), arg->name, type_to_string(arg->type), arg->value);
             printf(")");
         }
         printf("\n");
@@ -208,7 +220,7 @@ void symbol_table_debug(symbol_table_t *self)
     {
         return;
     }
-    printf("SCOPE %s, %s : %s\n", frame_str[self->frame], self->frame_name, frame_str[self->frame_type]);
+    printf("SCOPE %s, %s : %s\n", type_to_string(self->frame), self->frame_name, type_to_string(self->frame_type));
     symbol_table_traverse(self->top);
     symbol_table_debug(self->next);
 }
@@ -247,6 +259,7 @@ symbol_table_t *init_symbol_table(arg_type frame)
     table->top = NULL;
     table->next = NULL;
     table->frame_name = NULL;
+    table->find_g = symbol_table_find_g;
     table->debug = symbol_table_debug;
     table->insert = symbol_table_insert;
     table->free = free_symbol_table;

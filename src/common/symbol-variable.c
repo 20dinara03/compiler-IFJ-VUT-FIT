@@ -29,16 +29,16 @@
 static void symbol_variable_push_arg(symbol_variable_t *self, string name, string value, arg_type type)
 {
 
-    if (self->args_list == NULL)
+    if (self->arg_next == NULL)
     {
-        self->args_list = init_symbol_variable(name, value, type, TF, false);
+        self->arg_next = init_symbol_variable(name, value, type, TF, false);
     }
     else
     {
-        symbol_variable_t *var = self->args_list;
-        for (; var->args_list != NULL; var = var->args_list)
+        symbol_variable_t *var = self->arg_next;
+        for (; var->arg_next != NULL; var = var->arg_next)
             ;
-        var->args_list = init_symbol_variable(name, value, type, TF, false);
+        var->arg_next = init_symbol_variable(name, value, type, TF, false);
     }
     self->args_size++;
 }
@@ -54,13 +54,20 @@ static symbol_variable_t *symbol_variable_find_arg(symbol_variable_t *self, stri
 {
     if (self->is_function == true)
         return NULL;
-    for (symbol_variable_t *node = self->args_list; node != NULL; node = node->args_list)
+    for (symbol_variable_t *node = self->arg_next; node != NULL; node = node->arg_next)
     {
-        printf("%s\n", node->name);
         if (strcmp(node->name, name) == 0)
             return node;
     }
     return NULL;
+}
+
+static arg_type symbol_variable_find_arg_g(symbol_variable_t *self, string name)
+{
+    symbol_variable_t *var = symbol_variable_find_arg(self, name);
+    if (var == NULL)
+        return -1;
+    return var->frame;
 }
 
 /**
@@ -85,23 +92,20 @@ static symbol_table_types symbol_variable_assign(symbol_variable_t *self, string
  */
 static void free_symbol_variable(symbol_variable_t **var)
 {
-#define var (*var)
-    if (var == NULL)
+    if ((*var) == NULL)
         return;
-    free(var->name);
-    free(var->value);
-    for (symbol_variable_t *next = var->args_list; next != NULL;)
+    free((*var)->name);
+    free((*var)->value);
+    for (symbol_variable_t *next = (*var)->arg_next; next != NULL;)
     {
         symbol_variable_t *target = next;
-        next = next->args_list;
+        next = next->arg_next;
         free(target->name);
         free(target->value);
         free(target);
     }
-    free(var);
-    var = NULL;
-
-#undef var
+    free((*var));
+    (*var) = NULL;
 }
 
 /**
@@ -123,7 +127,8 @@ symbol_variable_t *init_symbol_variable(string name, string value, arg_type type
     var->type = type;
     var->frame = frame;
     var->is_function = is_function;
-    var->args_list = NULL;
+    var->arg_next = NULL;
+    var->find_arg_g = symbol_variable_find_arg_g;
     var->assign = symbol_variable_assign;
     var->push_arg = symbol_variable_push_arg;
     var->find_arg = symbol_variable_find_arg;

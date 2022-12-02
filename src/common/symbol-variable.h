@@ -24,10 +24,11 @@ struct symbol_variable_t
     arg_type frame;
     /*Function properties*/
     size_t args_size;
-    symbol_variable_t *args_list;
+    symbol_variable_t *arg_next;
     bool is_function;
 
     symbol_variable_t *(*find_arg)(symbol_variable_t *self, string name);
+    arg_type (*find_arg_g)(symbol_variable_t *self, string name);
     symbol_table_types (*assign)(symbol_variable_t *self, string value, arg_type type);
     void (*push_arg)(symbol_variable_t *self, string name, string value, arg_type type);
     void (*free)(symbol_variable_t **self);
