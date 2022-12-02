@@ -20,7 +20,7 @@ struct symbol_table_t
     /*Name of the scope*/
     string frame_name;
     /*Type of the scope, if it's a function*/
-    arg_type scope_type;
+    arg_type frame_type;
     /*Symbol table's top scope*/
     symbol_node_t *top;
     /*Symbol table's outer scope*/
@@ -28,9 +28,10 @@ struct symbol_table_t
 
     arg_type frame;
 
+    void (*debug)(symbol_table_t *self);
     symbol_table_types (*insert)(symbol_table_t *self, string var_name, string var_value, arg_type var_type, bool is_function);
     symbol_variable_t *(*find)(symbol_table_t *self, string var_name);
-    void (*push_frame)(symbol_table_t **self, string frame_name, arg_type scope_type);
+    void (*push_frame)(symbol_table_t **self, string frame_name, arg_type frame_type);
     void (*pop_frame)(symbol_table_t **self);
     void (*free)(symbol_table_t **self);
 };

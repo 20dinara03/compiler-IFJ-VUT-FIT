@@ -6,6 +6,17 @@ static symbol_table_types symbol_table_insert(symbol_table_t *self, string name,
 static void free_symbol_node(symbol_node_t **self);
 static symbol_node_t *init_symbol_node(string name, string value, arg_type type, arg_type frame, bool is_function);
 
+const char *frame_str[] = {
+    [LF] = "LF",
+    [TF] = "TF",
+    [GF] = "GF",
+    [INT] = "INT",
+    [FLOAT] = "FLOAT",
+    [STRING] = "STRING",
+    [BOOL] = "BOOL",
+    [NIL] = "NULL",
+};
+
 /**
  * @brief Destructor for the tree to this node
  *
@@ -16,10 +27,11 @@ static symbol_node_t *init_symbol_node(string name, string value, arg_type type,
  *
  * @return Symbol table's code
  */
-static symbol_table_types symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type, bool is_function)
+static symbol_table_types
+symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type, bool is_function)
 {
-    symbol_node_t *node = NULL;
     symbol_variable_t *var = NULL;
+    symbol_node_t *node = self->top;
 
     if ((var = symbol_table_find(self, name)) != NULL)
     {
@@ -27,7 +39,7 @@ static symbol_table_types symbol_table_insert(symbol_table_t *self, string name,
     }
     if (self->top == NULL)
     {
-        self->top = init_symbol_node(name, value, type, self->frame,is_function);
+        self->top = init_symbol_node(name, value, type, self->frame, is_function);
     }
     while (node != NULL)
     {
@@ -35,7 +47,7 @@ static symbol_table_types symbol_table_insert(symbol_table_t *self, string name,
         {
             if (node->left == NULL)
             {
-                node->left = init_symbol_node(name, value, type, self->frame,is_function);
+                node->left = init_symbol_node(name, value, type, self->frame, is_function);
                 return ST_INSERT;
             }
             else
@@ -47,12 +59,12 @@ static symbol_table_types symbol_table_insert(symbol_table_t *self, string name,
         {
             if (node->right == NULL)
             {
-                node->right = init_symbol_node(name, value, type, self->frame,is_function);
+                node->right = init_symbol_node(name, value, type, self->frame, is_function);
                 return ST_INSERT;
             }
             else
             {
-                node = node->left;
+                node = node->right;
             }
         }
         else
@@ -147,7 +159,7 @@ static void push_frame(symbol_table_t **self, string name, arg_type type)
     malloc_s(new_scope->frame_name, char, strlen(name));
     strcpy(new_scope->frame_name, name);
     new_scope->top = NULL;
-    new_scope->scope_type = type;
+    new_scope->frame_type = type;
     new_scope->next = *self;
     *self = new_scope;
 }
@@ -170,6 +182,35 @@ static void pop_frame(symbol_table_t **self)
         free(delete_scope->frame_name);
         free(delete_scope);
     }
+}
+
+static void symbol_table_traverse(symbol_node_t *root)
+{
+    if (root != NULL)
+    {
+        printf("   %s|%s: %s = %s ", frame_str[root->var->frame], root->var->name, frame_str[root->var->type], root->var->value);
+        if (root->var->is_function)
+        {
+            printf("( ");
+            for (symbol_variable_t *arg = root->var->args_list; arg != NULL; arg = arg->args_list)
+                printf("%s|%s: %s = %s, ", frame_str[arg->frame], arg->name, frame_str[arg->type], arg->value);
+            printf(")");
+        }
+        printf("\n");
+        symbol_table_traverse(root->left);
+        symbol_table_traverse(root->right);
+    }
+}
+
+void symbol_table_debug(symbol_table_t *self)
+{
+    if (self == NULL)
+    {
+        return;
+    }
+    printf("SCOPE %s, %s : %s\n", frame_str[self->frame], self->frame_name, frame_str[self->frame_type]);
+    symbol_table_traverse(self->top);
+    symbol_table_debug(self->next);
 }
 
 /**
@@ -201,11 +242,12 @@ symbol_table_t *init_symbol_table(arg_type frame)
 {
     symbol_table_t *table = NULL;
     malloc_s(table, symbol_table_t, 1);
-    table->scope_type = NONE;
+    table->frame_type = NIL;
     table->frame = frame;
     table->top = NULL;
     table->next = NULL;
     table->frame_name = NULL;
+    table->debug = symbol_table_debug;
     table->insert = symbol_table_insert;
     table->free = free_symbol_table;
     table->push_frame = push_frame;
