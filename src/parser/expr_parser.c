@@ -329,13 +329,14 @@ void print_stack(expr_stack_t* stack){
     printf("\n");
 }
 
+
+
 bool expression(parser_t *parser)
 {
     int count_brackets = 0;
     expr_stack_t *stack = (expr_stack_t *)malloc(sizeof(expr_stack_t));
     expr_stack_init(stack);
-    if (!expr_stack_push(stack, DOLLAR))
-        FREE_STACK(false);
+    expr_stack_push(stack, DOLLAR);
 
     expr_stack_item_t *top_stack_terminal;
     stack_symbols actual_symbol;
@@ -343,21 +344,27 @@ bool expression(parser_t *parser)
     do
     {
         if ((parser->scanner->current_token->type == IDENTIFIER)){
+            //printf("func %s\n",parser->scanner->current_token->text );
             if (!parseFunctionCall(parser)){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false1\n");
                 FREE_STACK(false);
             }
             else{
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("true1\n");
-                expr_stack_free(stack);
-                return true;
+                //printf("curtoken %s\n",parser->scanner->current_token->text);
+               // printf("true1\n");
+
+                actual_symbol = ID;
             }
         }
+        else{
+            actual_symbol = get_symbol_from_token(parser->scanner->current_token);
+        }
 
-        //printf("bravck %d\n", count_brackets);
-        actual_symbol = get_symbol_from_token(parser->scanner->current_token);
+
+
+        //printf("actualsymbol %d\n", actual_symbol);
+
         top_stack_terminal = expr_stack_top_term(stack);
 
         if (top_stack_terminal == NULL){
@@ -458,7 +465,6 @@ bool expression(parser_t *parser)
     //printf("%d",parser->scanner->current_token->type);
     //printf("true10\n");
 
-    
     expr_stack_free(stack);
     return true;
 }

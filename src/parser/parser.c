@@ -8,6 +8,7 @@
 #define next_token safeNextToken(self)
 #define token_not_null if (token == NULL) {return false;}
 #define token_is(b) _equal_token(self, b)
+#define token_is_not_jump(b) _equal_not_jump(self, token->text, b)
 #define token_type_is(b) _equal_token_type(self, b)
 #define equal(a, b) strcmp(a, b) == 0
 
@@ -70,6 +71,14 @@ bool _equal_token(parser_t* self, const char *b) {
 bool _equal_token_type(parser_t* self, const char* t) {
     if (token != NULL)
         return _equal(self, token->decode(token->type), t);
+    return false;
+}
+
+bool _equal_not_jump(parser_t* self, const char* a, const char *b) {
+    self = self;
+    if (strcmp(a, b) == 0) {
+        return true;
+    }
     return false;
 }
 
@@ -265,8 +274,7 @@ bool parseFunctionCall(parser_t *self) {
         frame_add_line(as PUSHFRAME());
         frame_add_line(as CREATEFRAME());
 
-        bool pass = parseVariableFuncIdentifiers(self, built_in) AND token_is(")");   // parse next rules
-
+        bool pass = parseVariableFuncIdentifiers(self, built_in) AND token_is_not_jump(")");   // parse next rules
         if (equal(function_name, "write"))
             frame_add_line(as WRITE(new_arg(TF, RESULT)));
         else if(equal(function_name, "read"))
@@ -433,8 +441,10 @@ bool parseReturn(parser_t *self) {
 
 bool parseExpression(parser_t *self) {
     log("expression")
-    //printf("66666666666666666666");
-    return expression(self);
+    bool result = expression(self);
+    //printf("%s\n", self->scanner->current_token->text);
+    //printf("%d\n", result);
+    return result;
 }
 
 bool parseType(parser_t *self) {
