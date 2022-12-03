@@ -28,29 +28,9 @@ if ($a <= 0) {
     write("Faktorial nelze spocitat\n");
 } else {
     $vysl = 1.e+10;
-    while (!($a != 0 && $b > 3 || $c >=4 )) {
     $vysl = $vysl * $a;
     $a = $a * 1 / 5;
 }
 write("Vysledek je: ", $vysl, "\n");
-}
-
-
-
-// write("Zadejte cislo pro vypocet faktorialu\n");
-// $a = readi();
-// if ($a === null) {
-// write("Faktorial nelze spocitat\n");
-// } else {}
-// if ($a <= 0) {
-// write("Faktorial nelze spocitat\n");
-// } else {
-// $vysl = 1.e+10;
-// while (!($a != 0 && $b > 3 || $c >=4 )) {
-// $vysl = $vysl * $a;
-// $a = $a * 1 / 5;
-// }
-// write("Vysledek je: ", $vysl, "\n");
-// }
 
 ?>

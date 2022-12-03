@@ -38,7 +38,7 @@ bool expr_stack_push(expr_stack_t *stack, stack_symbols symbol)
 {
     expr_stack_item_t *new_item = NULL;
 
-    memo_allocate(new_item, expr_stack_item_t, 1);
+    malloc_s(new_item, expr_stack_item_t, 1);
 
     new_item->symbol = symbol;
     // new_item->token = token;

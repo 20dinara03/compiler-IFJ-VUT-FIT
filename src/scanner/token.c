@@ -87,7 +87,7 @@ void fill(token_t *self, string text, types_t type)
 {
     if (text != NULL)
     {
-        memo_allocate(self->text, char, strlen(text));
+        malloc_s(self->text, char, strlen(text));
         strcpy(self->text, text);
     }
     self->type = type;
