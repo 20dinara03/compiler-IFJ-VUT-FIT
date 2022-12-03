@@ -167,8 +167,9 @@ static void free_symbol_node(symbol_node_t **self)
 static void push_frame(symbol_table_t **self, string name, arg_type type)
 {
     symbol_table_t *new_scope = init_symbol_table(TF);
-    malloc_s(new_scope->frame_name, char, strlen(name));
-    strcpy(new_scope->frame_name, name);
+    malloc_s(new_scope->frame_name, char, strlen(name == NULL ? "POPOVICH" : name));
+    if (name != NULL)
+        strcpy(new_scope->frame_name, name);
     new_scope->top = NULL;
     new_scope->frame_type = type;
     new_scope->next = *self;

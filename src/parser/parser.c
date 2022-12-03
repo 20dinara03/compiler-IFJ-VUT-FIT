@@ -115,6 +115,7 @@ bool parse(parser_t *self) {
     }
     logging("\33[1;31mPARSING FAILED\33[0m\n");
     exit_failure(SYNTAXIS_ANALYSIS_ERR);
+    return false;
 }
 
 bool _safe_and(parser_t *self, char *rule, code_type type, code_type type2) {
@@ -190,8 +191,12 @@ bool parseOptionalEnding(parser_t *self) {
 }
 
 bool parseCodeLines(parser_t *self) {
-    log("code_lines ::= (code_line code_lines) | ''")
-    return parseCodeLine(self) ? parseCodeLines(self) : true;
+    bool pass = parseCodeLine(self);
+    if (pass) {
+        bool pass2 = parseCodeLines(self);
+        return pass2;
+    }
+    return true;
 }
 
 bool parseCodeLine(parser_t *self) {

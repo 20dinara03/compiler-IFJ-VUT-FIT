@@ -51,7 +51,7 @@ label_t *new_label(code_stack_t *stack, code_type name) {
     sprintf(self->name, "%s", transalate[name]);
 
     for (int i = 1; i < stack->size; i++) // i = 1 because stack[0] is global
-        sprintf(self->name, "%s_%d", self->name, stack->blocks[i]->id);
+        sprintf(self->name, "%s_%d", transalate[name], stack->blocks[i]->id);
 
     return self;
 }
