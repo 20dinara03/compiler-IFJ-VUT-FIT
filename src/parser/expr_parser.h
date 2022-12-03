@@ -51,9 +51,19 @@ typedef enum
 	E_NONTERM		// non-terminal
 } stack_symbols;
 
+typedef enum
+{
+	INT_E,		// int
+	DOUBLE_E,	// double
+	STRING_E,			// string
+    NULL_E,
+	NOT_E		// non-terminal
+} non_term_type_t;
+
 typedef struct expr_stack_item_t
 {
-    /////
+	token_t* token;
+    non_term_type_t non_term_type; 
     stack_symbols symbol;
     expr_stack_item_t *next;
 } expr_stack_item_t;

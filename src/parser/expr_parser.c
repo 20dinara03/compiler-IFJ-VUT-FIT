@@ -12,7 +12,7 @@ int prec_table[8][8] =
     {
         {R, L, R, L, R, L, N, R},
         {R, R, R, L, R, L, N, R},
-        {L, L, R, L, R, L, L, R},
+        {L, L, N, L, R, L, L, R},
         {L, L, L, L, E, L, L, N},
         {R, R, R, N, R, N, R, R},
         {R, R, R, N, R, N, R, R},
@@ -34,14 +34,15 @@ void expr_stack_init(expr_stack_t *stack)
     stack->top = NULL;
 }
 
-bool expr_stack_push(expr_stack_t *stack, stack_symbols symbol)
+bool expr_stack_push(expr_stack_t *stack, stack_symbols symbol, non_term_type_t non_term_type, token_t *token)
 {
     expr_stack_item_t *new_item = NULL;
 
     malloc_s(new_item, expr_stack_item_t, 1);
 
     new_item->symbol = symbol;
-    // new_item->token = token;
+    new_item->non_term_type = non_term_type;
+    new_item->token = token;
     new_item->next = stack->top;
     stack->top = new_item;
 
@@ -85,7 +86,7 @@ expr_stack_item_t *expr_stack_top_term(expr_stack_t *stack)
     return NULL;
 }
 
-bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol)
+bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol, non_term_type_t non_term_type, token_t *token)
 {
     expr_stack_item_t *prev = NULL;
 
@@ -99,6 +100,8 @@ bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol)
                 return false;
 
             new_item->symbol = symbol;
+            new_item->non_term_type = non_term_type;
+            new_item->token = token;
 
             if (prev == NULL)
             {
@@ -284,13 +287,15 @@ bool test_rule(int num, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_sta
     return false;
 }
 
-bool reduce_by_rule(expr_stack_t *stack)
+bool reduce_by_rule(expr_stack_t *stack, parser_t* parser)
 {
     expr_stack_item_t *op1 = NULL;
     expr_stack_item_t *op2 = NULL;
     expr_stack_item_t *op3 = NULL;
     bool found = false;
     bool is_rule = false;
+    bool comp_types = false;
+    non_term_type_t non_term_type = NOT_E;
 
     int count = num_of_symbols_after_stop(&found, stack);
 
@@ -298,6 +303,7 @@ bool reduce_by_rule(expr_stack_t *stack)
     {
         op1 = stack->top;
         is_rule = test_rule(count, op1, NULL, NULL);
+        comp_types = semantic_analysis(parser, op1, NULL, NULL, &non_term_type);
     }
     else if (count == 3 && found)
     {
@@ -305,14 +311,15 @@ bool reduce_by_rule(expr_stack_t *stack)
         op2 = stack->top->next;
         op3 = stack->top;
         is_rule = test_rule(count, op1, op2, op3);
+        comp_types = semantic_analysis(parser, op1, NULL, NULL, &non_term_type);
     }
     else
         return false;
 
-    if (is_rule)
+    if (is_rule && comp_types)
     {
         expr_stack_pop_some(stack, count + 1);
-        expr_stack_push(stack, E_NONTERM);
+        expr_stack_push(stack, E_NONTERM, non_term_type, non_term_type);
     }
     else
     {
@@ -330,41 +337,217 @@ void print_stack(expr_stack_t* stack){
 }
 
 
+bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_stack_item_t *op3, non_term_type_t* non_term_type)
+{
+	bool op1_to_double = false;
+	bool op3_to_double = false;
+	bool op1_to_integer = false;
+	bool op3_to_integer = false;
+
+    if (op2 == NULL && op3 == NULL){
+        symbol_variable_t* symbol_variable;
+        switch (op1->symbol){
+            case INT_NUMBER:
+                non_term_type = INT_E;
+            case DOUBLE_NUMBER:
+                non_term_type = DOUBLE_E;
+            case STRING_LINE:
+                non_term_type = STRING_E;
+            case KEYWORD_NULL:
+                non_term_type = NULL_E;
+            case ID:
+                symbol_variable = parser->symbol_table->find(parser->symbol_table, op1->token->text);
+                switch(symbol_variable->type){
+                    case INT:
+                        non_term_type = INT_E;
+                    case STRING:
+                        non_term_type = STRING_E;
+                    case FLOAT:
+                        non_term_type = DOUBLE_E;
+                    case NIL:
+                        non_term_type = NULL_E;
+                }
+            default:
+                return false;
+        }
+    }
+    else if(op1->symbol == E_NONTERM && op3->symbol == E_NONTERM){
+        switch(op2->symbol){
+            case PLUS:
+            case MINUS:
+            //switch type of non_term_type, check op1 op3 return if false if not return then generace
+        }
+    }
+	// if (rule == OPERAND)
+	// {
+	// 	if (op1->data_type == TYPE_UNDEFINED)
+	// 		return SEM_ERR_UNDEFINED_VAR;
+
+	// 	if (op1->data_type == TYPE_BOOL)
+	// 		return SEM_ERR_TYPE_COMPAT;
+	// }
+
+	// if (rule == LBR_NT_RBR)
+	// {
+	// 	if (op2->data_type == TYPE_UNDEFINED)
+	// 		return SEM_ERR_UNDEFINED_VAR;
+	// }
+
+	// if (rule != OPERAND && rule != LBR_NT_RBR)
+	// {
+	// 	if (op1->data_type == TYPE_UNDEFINED || op3->data_type == TYPE_UNDEFINED)
+	// 		return SEM_ERR_UNDEFINED_VAR;
+
+	// 	if (op1->data_type == TYPE_BOOL || op3->data_type == TYPE_BOOL)
+	// 		return SEM_ERR_TYPE_COMPAT;
+	// }
+
+	// switch (rule)
+	// {
+	// case OPERAND:
+	// 	*final_type = op1->data_type;
+	// 	break;
+
+	// case LBR_NT_RBR:
+	// 	*final_type = op2->data_type;
+	// 	break;
+
+	// case NT_PLUS_NT:
+	// case NT_MINUS_NT:
+	// case NT_MUL_NT:
+	// 	if (op1->data_type == TYPE_STRING && op3->data_type == TYPE_STRING && rule == NT_PLUS_NT)
+	// 	{
+	// 		*final_type = TYPE_STRING;
+	// 		break;
+	// 	}
+
+	// 	if (op1->data_type == TYPE_INT && op3->data_type == TYPE_INT)
+	// 	{
+	// 		*final_type = TYPE_INT;
+	// 		break;
+	// 	}
+
+	// 	if (op1->data_type == TYPE_STRING || op3->data_type == TYPE_STRING)
+	// 		return SEM_ERR_TYPE_COMPAT;
+
+	// 	*final_type = TYPE_DOUBLE;
+
+	// 	if (op1->data_type == TYPE_INT)
+	// 		retype_op1_to_double = true;
+
+	// 	if (op3->data_type == TYPE_INT)
+	// 		retype_op3_to_double = true;
+
+	// 	break;
+
+	// case NT_DIV_NT:
+	// 	*final_type = TYPE_DOUBLE;
+
+	// 	if (op1->data_type == TYPE_STRING || op3->data_type == TYPE_STRING)
+	// 		return SEM_ERR_TYPE_COMPAT;
+
+	// 	if (op1->data_type == TYPE_INT)
+	// 		retype_op1_to_double = true;
+
+	// 	if (op3->data_type == TYPE_INT)
+	// 		retype_op3_to_double = true;
+
+	// 	break;
+
+	// case NT_IDIV_NT:
+	// 	*final_type = TYPE_INT;
+
+	// 	if (op1->data_type == TYPE_STRING || op3->data_type == TYPE_STRING)
+	// 		return SEM_ERR_TYPE_COMPAT;
+
+	// 	if (op1->data_type == TYPE_DOUBLE)
+	// 		retype_op1_to_integer = true;
+
+	// 	if (op3->data_type == TYPE_DOUBLE)
+	// 		retype_op3_to_integer = true;
+
+	// 	break;
+
+	// case NT_EQ_NT:
+	// case NT_NEQ_NT:
+	// case NT_LEQ_NT:
+	// case NT_LTN_NT:
+	// case NT_MEQ_NT:
+	// case NT_MTN_NT:
+	// 	*final_type = TYPE_BOOL;
+
+	// 	if (op1->data_type == TYPE_INT && op3->data_type == TYPE_DOUBLE)
+	// 		retype_op1_to_double = true;
+
+	// 	else if (op1->data_type == TYPE_DOUBLE && op3->data_type == TYPE_INT)
+	// 		retype_op3_to_double = true;
+
+	// 	else if (op1->data_type != op3->data_type)
+	// 		return SEM_ERR_TYPE_COMPAT;
+
+	// 	break;
+
+	// default:
+	// 	break;
+	// }
+
+	// if (retype_op1_to_double)
+	// {
+	// 	GENERATE_CODE(generate_stack_op2_to_double);
+	// }
+
+	// if (retype_op3_to_double)
+	// {
+	// 	GENERATE_CODE(generate_stack_op1_to_double);
+	// }
+
+	// if (retype_op1_to_integer)
+	// {
+	// 	GENERATE_CODE(generate_stack_op2_to_integer);
+	// }
+
+	// if (retype_op3_to_integer)
+	// {
+	// 	GENERATE_CODE(generate_stack_op1_to_integer);
+	// }
+
+	// return SYNTAX_OK;
+}
+
+
+
+
 
 bool expression(parser_t *parser)
 {
     int count_brackets = 0;
     expr_stack_t *stack = (expr_stack_t *)malloc(sizeof(expr_stack_t));
     expr_stack_init(stack);
-    expr_stack_push(stack, DOLLAR);
+    if (!expr_stack_push(stack, DOLLAR, NOT_E, NULL))
+        FREE_STACK(false);
 
     expr_stack_item_t *top_stack_terminal;
     stack_symbols actual_symbol;
+
     bool success = false;
     do
     {
         if ((parser->scanner->current_token->type == IDENTIFIER)){
-            //printf("func %s\n",parser->scanner->current_token->text );
             if (!parseFunctionCall(parser)){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false1\n");
                 FREE_STACK(false);
             }
             else{
-                //printf("curtoken %s\n",parser->scanner->current_token->text);
-               // printf("true1\n");
-
-                actual_symbol = ID;
+                //printf("%d",parser->scanner->current_token->type);
+                //printf("true1\n");
+                expr_stack_free(stack);
+                return true;
             }
         }
-        else{
-            actual_symbol = get_symbol_from_token(parser->scanner->current_token);
-        }
 
-
-
-        //printf("actualsymbol %d\n", actual_symbol);
-
+        //printf("bravck %d\n", count_brackets);
+        actual_symbol = get_symbol_from_token(parser->scanner->current_token);
         top_stack_terminal = expr_stack_top_term(stack);
 
         if (top_stack_terminal == NULL){
@@ -378,13 +561,13 @@ bool expression(parser_t *parser)
         switch (prec_table[get_prec_table_index(top_stack_terminal->symbol)][get_prec_table_index(actual_symbol)])
         {
         case L:
-            if (!expr_stack_insert_after_term(stack, STOP)){
+            if (!expr_stack_insert_after_term(stack, STOP, NOT_E, NULL)){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false3\n");
                 FREE_STACK(false);
             }
 
-            if (!expr_stack_push(stack, actual_symbol)){
+            if (!expr_stack_push(stack, actual_symbol, NOT_E, parser->scanner->current_token)){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false4\n");
                 FREE_STACK(false);
@@ -398,7 +581,7 @@ bool expression(parser_t *parser)
             break;
 
         case E:
-            expr_stack_push(stack, actual_symbol);
+            expr_stack_push(stack, actual_symbol, NOT_E, parser->scanner->current_token);
 
             if ((!parser->scanner->get_next_token(parser->scanner))){
                 //printf("%d",parser->scanner->current_token->type);
@@ -408,7 +591,7 @@ bool expression(parser_t *parser)
             break;
 
         case R:
-            if ((!reduce_by_rule(stack))){
+            if ((!reduce_by_rule(parser, stack))){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false7\n");
                 FREE_STACK(false);
@@ -431,21 +614,11 @@ bool expression(parser_t *parser)
         if ((expr_stack_top(stack)->symbol != E_NONTERM) && (parser->scanner->current_token->type == OPERATOR_RIGHT_BRACKET)){
             count_brackets -= 1;
             if (count_brackets < 0){
-                if (expr_stack_top(stack)->symbol != PLUS && expr_stack_top(stack)->symbol != MINUS &&
-	                expr_stack_top(stack)->symbol != MUL && expr_stack_top(stack)->symbol != DIV &&
-	                expr_stack_top(stack)->symbol != EQ && expr_stack_top(stack)->symbol != CONC &&
-	                expr_stack_top(stack)->symbol != N_EQ && expr_stack_top(stack)->symbol != L_EQ &&
-	                expr_stack_top(stack)->symbol != LESS && expr_stack_top(stack)->symbol != M_EQ &&
-	                expr_stack_top(stack)->symbol != MORE)
-                {
-                    expr_stack_free(stack);
-                    return true;
-                }
-                else{
-                    expr_stack_free(stack);
-                    return false;
-                }
-            } 
+                // //printf("%d",parser->scanner->current_token->type);
+                // //printf("false2\n");
+                expr_stack_free(stack);
+                return true;
+            }
         }
     } while (!success);
 
@@ -465,6 +638,7 @@ bool expression(parser_t *parser)
     //printf("%d",parser->scanner->current_token->type);
     //printf("true10\n");
 
+    
     expr_stack_free(stack);
     return true;
 }
