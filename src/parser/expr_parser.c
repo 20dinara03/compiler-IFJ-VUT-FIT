@@ -339,7 +339,6 @@ bool expression(parser_t *parser)
 
     expr_stack_item_t *top_stack_terminal;
     stack_symbols actual_symbol;
-
     bool success = false;
     do
     {
@@ -425,11 +424,21 @@ bool expression(parser_t *parser)
         if ((expr_stack_top(stack)->symbol != E_NONTERM) && (parser->scanner->current_token->type == OPERATOR_RIGHT_BRACKET)){
             count_brackets -= 1;
             if (count_brackets < 0){
-                // //printf("%d",parser->scanner->current_token->type);
-                // //printf("false2\n");
-                expr_stack_free(stack);
-                return true;
-            }
+                if (expr_stack_top(stack)->symbol != PLUS && expr_stack_top(stack)->symbol != MINUS &&
+	                expr_stack_top(stack)->symbol != MUL && expr_stack_top(stack)->symbol != DIV &&
+	                expr_stack_top(stack)->symbol != EQ && expr_stack_top(stack)->symbol != CONC &&
+	                expr_stack_top(stack)->symbol != N_EQ && expr_stack_top(stack)->symbol != L_EQ &&
+	                expr_stack_top(stack)->symbol != LESS && expr_stack_top(stack)->symbol != M_EQ &&
+	                expr_stack_top(stack)->symbol != MORE)
+                {
+                    expr_stack_free(stack);
+                    return true;
+                }
+                else{
+                    expr_stack_free(stack);
+                    return false;
+                }
+            } 
         }
     } while (!success);
 
