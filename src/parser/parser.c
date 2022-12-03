@@ -23,6 +23,13 @@
 #define JAND(_t) && _safe_and(self, rule, JUMPIFNEQ, _t) && // jump &&
 #define OR || _safe_or(self, rule) ||
 
+#define scope_var(name, type) self->symbol_table->insert(self->symbol_table, name, "0", type, false)
+#define scope_func(name, type) self->symbol_table->insert(self->symbol_table, name, "0", type, true)
+#define scope_find(name) self->symbol_table->find_g(self->symbol_table, name)
+#define expl_new_scope(type) self->symbol_table->push_frame(&self->symbol_table, NULL, type);
+#define new_scope expl_new_scope(TF);
+#define end_scope self->symbol_table->pop_frame(&self->symbol_table);
+
 #define arg(type, name) new_arg(type, name)
 #define simple_arg(name) new_simple_arg(name)
 #define label(type) new_label(self->code_stack, type)
@@ -39,6 +46,14 @@
 
 define_logging(parser)
 
+
+arg_type dictionary[KEYWORD_VOID + 1] = {
+        [INT_LITERAL] = INT,
+        [DOUBLE_LITERAL] = FLOAT,
+        [STRING_LITERAL] = STRING,
+        [KEYWORD_VOID] = VOID,
+};
+
 parser_t* init_parser(scanner_t* scanner) {
     parser_t *self = malloc(sizeof(parser_t));
     self->logger = init_parser_logging();
@@ -47,6 +62,8 @@ parser_t* init_parser(scanner_t* scanner) {
 
     if (!self->scanner->logger->active && !self->logger->active)
         self->code_stack->active = true;
+
+    self->symbol_table = init_symbol_table(GF);
 
     self->parse = parse;
     self->free = destruct_parser;
@@ -159,17 +176,11 @@ bool parseVariableIdentifier(parser_t *self) {
     return token_type_is("VARIABLE_IDENTIFIER");
 }
 
-bool parseStringLiteral(parser_t *self) {
-    token_not_null
-    log("parseStringLiteral");
-    // TODO: const literal
-    return token_type_is("STRING_LITERAL");
-}
-
 bool parseProg(parser_t *self) {
     log("prog ::= '?php' 'declare' '(' 'strict_types' '=' '1' ')' ';' code_lines optional_ending")
 
     if (token_is("<?php")) {
+        expl_new_scope(GF)
         new_code_frame
         frame_add_line(as LABEL(simple_label(".IFJcode22")));
         frame_add_line(as JUMP(simple_label("main")));
@@ -179,6 +190,7 @@ bool parseProg(parser_t *self) {
         if (pass)
             pass = parseOptionalEnding(self);
         end_code_frame
+        end_scope
         return pass;
     }
     return false;
@@ -207,6 +219,7 @@ bool parseCodeLine(parser_t *self) {
 bool parseFunctionDefinition(parser_t *self) {
     log("function_definition ::= function_header '{' statements '}'")
 
+    new_scope
     new_code_frame
         if (parseFunctionHeader(self)) {
             pass = token_is("{") && parseStatements(self) && token_is("}");
@@ -217,6 +230,7 @@ bool parseFunctionDefinition(parser_t *self) {
             return true;
         }
     end_code_frame
+    end_scope
 
     return false;
 }
@@ -228,17 +242,27 @@ bool parseFunctionHeader(parser_t *self) {
         strcpy(function, token->text);
         frame_add_line(as LABEL(simple_label(function)));
 
-        if (!(parseIdentifier(self) AND token_is("(")
-                AND parseFunctionParams(self) AND token_is(")") AND parseOptionalResultType(self)))
+        arg_type func_type = VOID;
+
+        if (parseIdentifier(self) AND token_is("(") AND parseFunctionParams(self) AND token_is(")"))
+             parseOptionalResultType(self, &func_type);
+        else
             exit_failure(SYNTAXIS_ANALYSIS_ERR);
+
+        scope_func(function, func_type);
+
         return true;
     }
     return false;
 }
 
-bool parseOptionalResultType(parser_t *self) {
+bool parseOptionalResultType(parser_t *self, arg_type* func_type) {
     log("optional_result_type ::= ':' type | ''")
-    return token_is(":") ? parseType(self) : true;
+    if (token_is(":")) {
+        *func_type = dictionary[token->type];
+        parseType(self);
+    }
+    return true;
 }
 
 bool parseFunctionParams(parser_t *self) {
@@ -254,12 +278,18 @@ bool parseFunctionNParam(parser_t *self) {
 bool parseFunctionParam(parser_t *self) {
     log("function_param ::= type variable_identifier")
 
+    types_t type = token->type;
     if (parseType(self)) {
         char identifier[strlen(token->text)];
         strcpy(identifier, token->text);
+
+        scope_var(identifier, dictionary[type]);
+
         bool pass = parseVariableIdentifier(self);
+
         frame_add_line(as DEFVAR(new_arg(TF, identifier)));
         frame_add_line(as POPS(new_arg(TF, identifier)));
+
         return pass;
     }
     return false;
@@ -361,6 +391,7 @@ bool parseWhile(parser_t *self) {
     log("while ::= 'while' '(' expression ')' '{' statements '}'")
 
     if (token_is("while")) {
+        new_scope
         new_code_frame
             frame_add_line(as PUSHFRAME());
             frame_add_line(as LABEL(label(WHILE)));
@@ -368,6 +399,7 @@ bool parseWhile(parser_t *self) {
                 AND token_is("{") AND parseStatements(self) AND token_is("}");
             frame_add_line(as POPFRAME());
         end_code_frame
+        end_scope
 
         if (!pass)
             exit_failure(SYNTAXIS_ANALYSIS_ERR);
@@ -382,17 +414,20 @@ bool parseCondition(parser_t *self) {
 
     if (token_is("if")) {
         new_code_frame
-        frame_add_line(as PUSHFRAME());
-        frame_add_line(as LABEL(label(IF)));
-        pass = token_is("(") AND
-       parseExpression(self) AND
-               token_is(")") JAND(ELSE)
-               token_is("{") AND
-       parseStatements(self) AND
-               token_is("}") CAND(ELSE)
-       parseConditionElse(self);
-        frame_add_line(as POPFRAME());
+        new_scope
+            frame_add_line(as PUSHFRAME());
+            frame_add_line(as LABEL(label(IF)));
+            pass = token_is("(") AND parseExpression(self) AND token_is(")") JAND(ELSE)
+                   token_is("{") AND parseStatements(self) AND token_is("}");
+        end_scope
+
+        new_scope
+            pass = pass CAND(ELSE) parseConditionElse(self);
+        end_scope
+
+            frame_add_line(as POPFRAME());
         end_code_frame
+
         if (!pass)
             exit_failure(SYNTAXIS_ANALYSIS_ERR);
 
@@ -442,7 +477,6 @@ bool parseReturn(parser_t *self) {
     }
     return false;
 }
-
 
 bool parseExpression(parser_t *self) {
     log("expression")

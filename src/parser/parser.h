@@ -4,6 +4,7 @@
 #include "../common/logging.h"
 #include "../code_generation/code_generation_base.h"
 #include "../code_generation/code_templates.h"
+#include "../common/symbol-table.h"
 
 declare_logging(parser)
 
@@ -12,6 +13,7 @@ typedef struct parser_t {
     code_block_t *current_block;
 
     scanner_t *scanner;
+    symbol_table_t *symbol_table;
     parser_logging_t *logger;
     void (*free)(struct parser_t *self);
     bool (*parse)(struct parser_t *self);
@@ -28,7 +30,7 @@ bool parseCodeLines(parser_t *self);
 bool parseCodeLine(parser_t *self);
 bool parseFunctionDefinition(parser_t *self);
 bool parseFunctionHeader(parser_t *self);
-bool parseOptionalResultType(parser_t *self);
+bool parseOptionalResultType(parser_t *self, arg_type* func_type);
 bool parseFunctionParams(parser_t *self);
 bool parseFunctionNParam(parser_t *self);
 bool parseFunctionParam(parser_t *self);

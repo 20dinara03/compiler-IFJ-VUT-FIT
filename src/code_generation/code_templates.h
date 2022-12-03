@@ -15,6 +15,7 @@ typedef enum {
     STRING,
     BOOL,
     NIL,
+    VOID,
 } arg_type;
 
 typedef struct arg_t {
