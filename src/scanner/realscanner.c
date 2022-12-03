@@ -643,6 +643,8 @@ void destruct_scanner_t(scanner_t *scanner)
     {
         if (scanner->logger != NULL)
             free_scanner_logging(scanner->logger);
+        if (scanner->current_token != NULL)
+            scanner->current_token->free(&scanner->current_token);
         free(scanner);
     }
 }

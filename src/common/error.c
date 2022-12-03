@@ -1,4 +1,5 @@
 #include "error.h"
+#include "../main.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -6,8 +7,7 @@
  * @brief Program clean up function
  */
 void free_program(){
-    // TODO: move to memo.h !!!
-    // free_queue(program.queue, free_token);
+    program.parser->free(program.parser);
 }
 
 /**
@@ -18,7 +18,7 @@ void free_program(){
 void exit_failure(int error_code)
 {
     free_program();
-    fprintf(stderr, "ERROR: ");
+    fprintf(stderr, "ERROR:");
     switch (error_code)
     {
         case LEXICAL_ANALYSIS_ERR:

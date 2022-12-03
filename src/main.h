@@ -9,8 +9,6 @@
 #include "./common/memo.h"
 #include "./common/program.h"
 
-#define FILEMODE "r"
-
 program_t program;
 
 #endif /* MAIN */

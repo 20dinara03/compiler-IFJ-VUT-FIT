@@ -7,7 +7,6 @@
  *      Dinara Garipova     | xgarip00
  *      Kateryna Zdebska    | xzdebs00
  */
-#include <stdio.h>
 #include "./main.h"
 
 int main()

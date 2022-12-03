@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 function some_function(int $a, int $b) : void {
-    
+
 }
 
 ?>

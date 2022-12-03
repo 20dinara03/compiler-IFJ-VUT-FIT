@@ -31,7 +31,7 @@
         bool pass;
 
 #define end_code_frame                                                                  \
-        self->code_stack->pop(self->code_stack, pass);                                  \
+        self->code_stack->pop(self->code_stack, true);                                  \
         self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
 
 define_logging(parser)
@@ -103,7 +103,7 @@ bool parse(parser_t *self) {
         return true;
     }
     logging("\33[1;31mPARSING FAILED\33[0m\n");
-    return false;
+    exit_failure(SYNTAXIS_ANALYSIS_ERR);
 }
 
 bool _safe_and(parser_t *self, char *rule, code_type type, code_type type2) {
@@ -192,12 +192,17 @@ bool parseFunctionDefinition(parser_t *self) {
     log("function_definition ::= function_header '{' statements '}'")
 
     new_code_frame
-        pass = parseFunctionHeader(self) AND token_is("{") AND parseStatements(self) AND token_is("}");
-    frame_add_line(as RETURN());
-
+        if (parseFunctionHeader(self)) {
+            pass = token_is("{") && parseStatements(self) && token_is("}");
+            if (!pass)
+                exit_failure(SYNTAXIS_ANALYSIS_ERR);
+            frame_add_line(as RETURN());
+            end_code_frame
+            return true;
+        }
     end_code_frame
 
-    return pass;
+    return false;
 }
 
 bool parseFunctionHeader(parser_t *self) {
@@ -207,9 +212,10 @@ bool parseFunctionHeader(parser_t *self) {
         strcpy(function, token->text);
         frame_add_line(as LABEL(simple_label(function)));
 
-        bool pass = parseIdentifier(self) AND token_is("(")
-                AND parseFunctionParams(self) AND token_is(")") AND parseOptionalResultType(self);
-        return pass;
+        if (!(parseIdentifier(self) AND token_is("(")
+                AND parseFunctionParams(self) AND token_is(")") AND parseOptionalResultType(self)))
+            exit_failure(SYNTAXIS_ANALYSIS_ERR);
+        return true;
     }
     return false;
 }
@@ -313,23 +319,27 @@ bool parseVariableFuncIdentifier(parser_t *self, bool built_in) {
 
 bool parseStatements(parser_t *self) {
     log("statements ::= statement statements | ''")
-    return parseStatement(self) ? parseStatements(self) : true;
+    bool pass = parseStatement(self) ? parseStatements(self) : true;
+    return pass;
 }
 
 bool parseStatement(parser_t *self) {
     log("statement ::= strict_statement ';' | optional_statement")
     // TODO: check parse strict statement without ';' then we can parse optional statement and get true
-    return (parseStrictStatement(self) AND token_is(";")) OR parseOptionalStatement(self);
+    bool pass = (parseStrictStatement(self) AND token_is(";")) OR parseOptionalStatement(self);
+    return pass;
 }
 
 bool parseStrictStatement(parser_t *self) {
     log("strict_statement ::= identifier_assignment | expression | return")
-    return parseIdentifierAssignment(self) OR parseExpression(self) OR parseReturn(self);
+    bool pass = parseIdentifierAssignment(self) OR parseExpression(self) OR parseReturn(self);
+    return pass;
 }
 
 bool parseOptionalStatement(parser_t *self) {
     log("optional_statement ::= condition | while")
-    return parseCondition(self) OR parseWhile(self);
+    bool pass = parseCondition(self) OR parseWhile(self);
+    return pass;
 }
 
 bool parseWhile(parser_t *self) {
@@ -343,7 +353,11 @@ bool parseWhile(parser_t *self) {
                 AND token_is("{") AND parseStatements(self) AND token_is("}");
             frame_add_line(as POPFRAME());
         end_code_frame
-        return pass;
+
+        if (!pass)
+            exit_failure(SYNTAXIS_ANALYSIS_ERR);
+
+        return true;
     }
     return false;
 }
@@ -364,14 +378,23 @@ bool parseCondition(parser_t *self) {
        parseConditionElse(self);
         frame_add_line(as POPFRAME());
         end_code_frame
-        return pass;
+        if (!pass)
+            exit_failure(SYNTAXIS_ANALYSIS_ERR);
+
+        return true;
     }
     return false;
 }
 
 bool parseConditionElse(parser_t *self) {
     log("condition_else ::= 'else' '{' statements '}' | ''")
-    return token_is("else") ? (token_is("{") && parseStatements(self) && token_is("}")) : true;
+    if (token_is("else")) {
+        if ((token_is("{") && parseStatements(self) && token_is("}")))
+            return true;
+        else
+            exit_failure(SYNTAXIS_ANALYSIS_ERR);
+    }
+    return true;
 }
 
 bool parseIdentifierAssignment(parser_t *self) {
@@ -380,6 +403,10 @@ bool parseIdentifierAssignment(parser_t *self) {
     strcpy(variable_name, token->text);
     if (parseVariableIdentifier(self)) {
         bool pass = parseAssignment(self);
+
+        if (!pass)
+            exit_failure(SYNTAXIS_ANALYSIS_ERR);
+
         frame_add_line(as MOVE(new_arg(TF, variable_name), new_arg(TF, RESULT)));
         return pass;
     }
@@ -388,7 +415,8 @@ bool parseIdentifierAssignment(parser_t *self) {
 
 bool parseAssignment(parser_t *self) {
     log("assignment ::= '=' expression | '+=' expression | '-=' expression | '*=' expression | '/=' expression")
-    return token_is("=") AND parseExpression(self);
+    bool pass = token_is("=") AND parseExpression(self);
+    return pass;
 }
 
 bool parseReturn(parser_t *self) {
@@ -402,7 +430,8 @@ bool parseReturn(parser_t *self) {
 
 bool parseParenthesis(parser_t *self) {
     log("parenthesis ::= '(' expression ')'")
-    return token_is("(") AND parseExpression(self) AND token_is(")");
+    bool pass = token_is("(") AND parseExpression(self) AND token_is(")");
+    return pass;
 }
 
 bool UpperExpression(parser_t *self) {

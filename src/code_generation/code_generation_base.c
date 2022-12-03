@@ -85,8 +85,10 @@ code_stack_t* new_code_stack() {
 }
 
 void destruct_code_stack(code_stack_t *self) {
-    for (int i = 0; i < self->size; i++)
+    for (int i = 0; i < self->size; i++) {
+        self->blocks[i]->release(self->blocks[i]);
         self->blocks[i]->free(self->blocks[i]);
+    }
     self->templater->free(self->templater);
     free(self->blocks);
     free(self);
