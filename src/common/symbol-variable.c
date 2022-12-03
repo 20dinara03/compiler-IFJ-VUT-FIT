@@ -52,7 +52,7 @@ static void symbol_variable_push_arg(symbol_variable_t *self, string name, strin
  */
 static symbol_variable_t *symbol_variable_find_arg(symbol_variable_t *self, string name)
 {
-    if (self->is_function == true)
+    if (self->is_function == false)
         return NULL;
     for (symbol_variable_t *node = self->arg_next; node != NULL; node = node->arg_next)
     {

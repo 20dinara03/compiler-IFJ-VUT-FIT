@@ -31,8 +31,7 @@ static string type_to_string(arg_type type)
  *
  * @return Symbol table's code
  */
-static symbol_table_types
-symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type, bool is_function)
+static symbol_table_types symbol_table_insert(symbol_table_t *self, string name, string value, arg_type type, bool is_function)
 {
     symbol_variable_t *var = NULL;
     symbol_node_t *node = self->top;
@@ -155,9 +154,9 @@ static void free_symbol_node(symbol_node_t **self)
     free_symbol_node(&(*self)->right);
 
     (*self)->var->free(&(*self)->var);
-    free(self);
+    free(*self);
 
-    self = NULL;
+    *self = NULL;
 }
 
 /**
@@ -214,7 +213,7 @@ static void symbol_table_traverse(symbol_node_t *root)
     }
 }
 
-void symbol_table_debug(symbol_table_t *self)
+static void symbol_table_debug(symbol_table_t *self)
 {
     if (self == NULL)
     {

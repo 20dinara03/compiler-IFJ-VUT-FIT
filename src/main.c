@@ -8,11 +8,9 @@
  *      Kateryna Zdebska    | xzdebs00
  */
 #include "./main.h"
-#include "./common/symbol-table.h"
 
 int main()
 {
-    
     program.scanner = init_scanner();
 
     program.parser = init_parser(program.scanner);
