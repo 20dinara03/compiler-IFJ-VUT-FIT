@@ -62,7 +62,7 @@ typedef enum
 
 typedef struct expr_stack_item_t
 {
-	token_t* token;
+	string actual_token_text;
     non_term_type_t non_term_type; 
     stack_symbols symbol;
     expr_stack_item_t *next;
@@ -82,7 +82,6 @@ typedef struct
 
 
 bool expression(parser_t* parser);
-
-
+bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_stack_item_t *op3, non_term_type_t* non_term_type);
 
 #endif

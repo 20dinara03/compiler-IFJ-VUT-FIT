@@ -73,6 +73,20 @@
 
 define_logging(parser)
 
+arg_type retype(types_t token_type){
+    switch(token_type){
+        case INT_LITERAL:
+            return INT;
+        case DOUBLE_LITERAL:
+            return FLOAT;
+        case STRING_LITERAL:
+            return STRING;
+        case KEYWORD_NULL:
+            return NIL;
+        default:
+            return NIL;
+    }
+}
 
 code_block_t* get_active_code_block(parser_t* self) {
     return self->get_current_stack(self)->blocks[self->get_current_stack(self)->size - 1];
@@ -82,8 +96,7 @@ code_stack_t *get_active_code_stack(parser_t *self) {
     return self->definition_stage ? self->function_code_stack : self->code_stack;
 }
 
-parser_t *init_parser(scanner_t *scanner)
-{
+parser_t* init_parser(scanner_t* scanner) {
     parser_t *self = malloc(sizeof(parser_t));
     self->logger = init_parser_logging();
     self->scanner = scanner;

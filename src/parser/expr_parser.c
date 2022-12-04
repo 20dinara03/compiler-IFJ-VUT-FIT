@@ -34,7 +34,7 @@ void expr_stack_init(expr_stack_t *stack)
     stack->top = NULL;
 }
 
-bool expr_stack_push(expr_stack_t *stack, stack_symbols symbol, non_term_type_t non_term_type, token_t *token)
+bool expr_stack_push(expr_stack_t *stack, stack_symbols symbol, non_term_type_t non_term_type, string actual_token_text)
 {
     expr_stack_item_t *new_item = NULL;
 
@@ -42,7 +42,7 @@ bool expr_stack_push(expr_stack_t *stack, stack_symbols symbol, non_term_type_t 
 
     new_item->symbol = symbol;
     new_item->non_term_type = non_term_type;
-    new_item->token = token;
+    new_item->actual_token_text = actual_token_text;
     new_item->next = stack->top;
     stack->top = new_item;
 
@@ -86,7 +86,7 @@ expr_stack_item_t *expr_stack_top_term(expr_stack_t *stack)
     return NULL;
 }
 
-bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol, non_term_type_t non_term_type, token_t *token)
+bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol, non_term_type_t non_term_type, string actual_token_text)
 {
     expr_stack_item_t *prev = NULL;
 
@@ -101,7 +101,7 @@ bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol, non
 
             new_item->symbol = symbol;
             new_item->non_term_type = non_term_type;
-            new_item->token = token;
+            new_item->actual_token_text = actual_token_text;
 
             if (prev == NULL)
             {
@@ -287,7 +287,7 @@ bool test_rule(int num, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_sta
     return false;
 }
 
-bool reduce_by_rule(expr_stack_t *stack, parser_t* parser)
+bool reduce_by_rule(parser_t* parser, expr_stack_t *stack)
 {
     expr_stack_item_t *op1 = NULL;
     expr_stack_item_t *op2 = NULL;
@@ -311,7 +311,7 @@ bool reduce_by_rule(expr_stack_t *stack, parser_t* parser)
         op2 = stack->top->next;
         op3 = stack->top;
         is_rule = test_rule(count, op1, op2, op3);
-        comp_types = semantic_analysis(parser, op1, NULL, NULL, &non_term_type);
+        comp_types = semantic_analysis(parser, op1, op2, op3, &non_term_type);
     }
     else
         return false;
@@ -319,7 +319,7 @@ bool reduce_by_rule(expr_stack_t *stack, parser_t* parser)
     if (is_rule && comp_types)
     {
         expr_stack_pop_some(stack, count + 1);
-        expr_stack_push(stack, E_NONTERM, non_term_type, non_term_type);
+        expr_stack_push(stack, E_NONTERM, non_term_type, NULL);
     }
     else
     {
@@ -331,7 +331,8 @@ bool reduce_by_rule(expr_stack_t *stack, parser_t* parser)
 
 void print_stack(expr_stack_t* stack){
     for(expr_stack_item_t*item = stack->top; item != NULL; item = item->next){
-        printf("%d, ",item->symbol);
+        printf("ttt %d ",item->symbol);
+        printf("kkk %s \n",item->actual_token_text);
     }
     printf("\n");
 }
@@ -339,34 +340,52 @@ void print_stack(expr_stack_t* stack){
 
 bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_stack_item_t *op3, non_term_type_t* non_term_type)
 {
+    printf("%s", op1->actual_token_text);
 	bool op1_to_double = false;
 	bool op3_to_double = false;
-	bool op1_to_integer = false;
-	bool op3_to_integer = false;
-
+	//bool op1_to_int = false;
+	//bool op3_to_int = false;
+    op1_to_double = op1_to_double;
+    op3_to_double = op3_to_double;
+    printf("insemantic\n");
     if (op2 == NULL && op3 == NULL){
         symbol_variable_t* symbol_variable;
         switch (op1->symbol){
             case INT_NUMBER:
-                non_term_type = INT_E;
+                *non_term_type = INT_E;
+                break;
             case DOUBLE_NUMBER:
-                non_term_type = DOUBLE_E;
+                *non_term_type = DOUBLE_E;
+                break;
             case STRING_LINE:
-                non_term_type = STRING_E;
-            case KEYWORD_NULL:
-                non_term_type = NULL_E;
+                *non_term_type = STRING_E;
+                break;
+            case NULL_TYPE:
+                *non_term_type = NULL_E;
+                break;
             case ID:
-                symbol_variable = parser->symbol_table->find(parser->symbol_table, op1->token->text);
+                printf("inid\n");
+                //printf("%p\n", parser->symbol_table);
+                parser->symbol_table->debug(parser->symbol_table);
+                symbol_variable = parser->symbol_table->find(parser->symbol_table, op1->actual_token_text);
+                printf("%s\n",op1->actual_token_text);
                 switch(symbol_variable->type){
                     case INT:
-                        non_term_type = INT_E;
+                        *non_term_type = INT_E;
+                        break;
                     case STRING:
-                        non_term_type = STRING_E;
+                        *non_term_type = STRING_E;
+                        break;
                     case FLOAT:
-                        non_term_type = DOUBLE_E;
+                        *non_term_type = DOUBLE_E;
+                        break;
                     case NIL:
-                        non_term_type = NULL_E;
+                        *non_term_type = NULL_E;
+                        break;
+                    default:
+                        return false;
                 }
+                break;
             default:
                 return false;
         }
@@ -375,143 +394,46 @@ bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item
         switch(op2->symbol){
             case PLUS:
             case MINUS:
+            case MUL:
+            case DIV:
+                if ((op1->non_term_type >= 2) || (op2->non_term_type >= 2)){
+                    return false;
+                }
+                if (op1->non_term_type == INT_E && op3->symbol == DIV && op3->non_term_type == INT_E){
+                    op3_to_double = true;
+                    op1_to_double = true;
+                    *non_term_type = DOUBLE_E;
+                }
+                if  (op1->non_term_type != op3->non_term_type){
+                    *non_term_type = DOUBLE_E;
+                    if (op1->non_term_type == DOUBLE_E){
+                        op3_to_double = true;
+                    }
+                    else{
+                        op1_to_double = true;
+                    }
+                }
+                break;
+            default:
+                break;
+
+            // case CONC:
+            //     //if 1.1
+            // case EQ:
+
+            // case N_EQ:
+
+            // case L_EQ:
+
+            // case LESS:
+
+            // case M_EQ:
+
+            // case MORE:
             //switch type of non_term_type, check op1 op3 return if false if not return then generace
         }
     }
-	// if (rule == OPERAND)
-	// {
-	// 	if (op1->data_type == TYPE_UNDEFINED)
-	// 		return SEM_ERR_UNDEFINED_VAR;
-
-	// 	if (op1->data_type == TYPE_BOOL)
-	// 		return SEM_ERR_TYPE_COMPAT;
-	// }
-
-	// if (rule == LBR_NT_RBR)
-	// {
-	// 	if (op2->data_type == TYPE_UNDEFINED)
-	// 		return SEM_ERR_UNDEFINED_VAR;
-	// }
-
-	// if (rule != OPERAND && rule != LBR_NT_RBR)
-	// {
-	// 	if (op1->data_type == TYPE_UNDEFINED || op3->data_type == TYPE_UNDEFINED)
-	// 		return SEM_ERR_UNDEFINED_VAR;
-
-	// 	if (op1->data_type == TYPE_BOOL || op3->data_type == TYPE_BOOL)
-	// 		return SEM_ERR_TYPE_COMPAT;
-	// }
-
-	// switch (rule)
-	// {
-	// case OPERAND:
-	// 	*final_type = op1->data_type;
-	// 	break;
-
-	// case LBR_NT_RBR:
-	// 	*final_type = op2->data_type;
-	// 	break;
-
-	// case NT_PLUS_NT:
-	// case NT_MINUS_NT:
-	// case NT_MUL_NT:
-	// 	if (op1->data_type == TYPE_STRING && op3->data_type == TYPE_STRING && rule == NT_PLUS_NT)
-	// 	{
-	// 		*final_type = TYPE_STRING;
-	// 		break;
-	// 	}
-
-	// 	if (op1->data_type == TYPE_INT && op3->data_type == TYPE_INT)
-	// 	{
-	// 		*final_type = TYPE_INT;
-	// 		break;
-	// 	}
-
-	// 	if (op1->data_type == TYPE_STRING || op3->data_type == TYPE_STRING)
-	// 		return SEM_ERR_TYPE_COMPAT;
-
-	// 	*final_type = TYPE_DOUBLE;
-
-	// 	if (op1->data_type == TYPE_INT)
-	// 		retype_op1_to_double = true;
-
-	// 	if (op3->data_type == TYPE_INT)
-	// 		retype_op3_to_double = true;
-
-	// 	break;
-
-	// case NT_DIV_NT:
-	// 	*final_type = TYPE_DOUBLE;
-
-	// 	if (op1->data_type == TYPE_STRING || op3->data_type == TYPE_STRING)
-	// 		return SEM_ERR_TYPE_COMPAT;
-
-	// 	if (op1->data_type == TYPE_INT)
-	// 		retype_op1_to_double = true;
-
-	// 	if (op3->data_type == TYPE_INT)
-	// 		retype_op3_to_double = true;
-
-	// 	break;
-
-	// case NT_IDIV_NT:
-	// 	*final_type = TYPE_INT;
-
-	// 	if (op1->data_type == TYPE_STRING || op3->data_type == TYPE_STRING)
-	// 		return SEM_ERR_TYPE_COMPAT;
-
-	// 	if (op1->data_type == TYPE_DOUBLE)
-	// 		retype_op1_to_integer = true;
-
-	// 	if (op3->data_type == TYPE_DOUBLE)
-	// 		retype_op3_to_integer = true;
-
-	// 	break;
-
-	// case NT_EQ_NT:
-	// case NT_NEQ_NT:
-	// case NT_LEQ_NT:
-	// case NT_LTN_NT:
-	// case NT_MEQ_NT:
-	// case NT_MTN_NT:
-	// 	*final_type = TYPE_BOOL;
-
-	// 	if (op1->data_type == TYPE_INT && op3->data_type == TYPE_DOUBLE)
-	// 		retype_op1_to_double = true;
-
-	// 	else if (op1->data_type == TYPE_DOUBLE && op3->data_type == TYPE_INT)
-	// 		retype_op3_to_double = true;
-
-	// 	else if (op1->data_type != op3->data_type)
-	// 		return SEM_ERR_TYPE_COMPAT;
-
-	// 	break;
-
-	// default:
-	// 	break;
-	// }
-
-	// if (retype_op1_to_double)
-	// {
-	// 	GENERATE_CODE(generate_stack_op2_to_double);
-	// }
-
-	// if (retype_op3_to_double)
-	// {
-	// 	GENERATE_CODE(generate_stack_op1_to_double);
-	// }
-
-	// if (retype_op1_to_integer)
-	// {
-	// 	GENERATE_CODE(generate_stack_op2_to_integer);
-	// }
-
-	// if (retype_op3_to_integer)
-	// {
-	// 	GENERATE_CODE(generate_stack_op1_to_integer);
-	// }
-
-	// return SYNTAX_OK;
+    return true;
 }
 
 
@@ -523,8 +445,7 @@ bool expression(parser_t *parser)
     int count_brackets = 0;
     expr_stack_t *stack = (expr_stack_t *)malloc(sizeof(expr_stack_t));
     expr_stack_init(stack);
-    if (!expr_stack_push(stack, DOLLAR, NOT_E, NULL))
-        FREE_STACK(false);
+    expr_stack_push(stack, DOLLAR, NOT_E, NULL);
 
     expr_stack_item_t *top_stack_terminal;
     stack_symbols actual_symbol;
@@ -547,6 +468,9 @@ bool expression(parser_t *parser)
         }
 
         //printf("bravck %d\n", count_brackets);
+        string actual_token_text = NULL;
+        malloc_s(actual_token_text, char, strlen(parser->scanner->current_token->text));
+        strcpy(actual_token_text, parser->scanner->current_token->text);
         actual_symbol = get_symbol_from_token(parser->scanner->current_token);
         top_stack_terminal = expr_stack_top_term(stack);
 
@@ -561,27 +485,33 @@ bool expression(parser_t *parser)
         switch (prec_table[get_prec_table_index(top_stack_terminal->symbol)][get_prec_table_index(actual_symbol)])
         {
         case L:
+            printf("ljkgyfkutckucfcty");
+            print_stack(stack);
             if (!expr_stack_insert_after_term(stack, STOP, NOT_E, NULL)){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false3\n");
                 FREE_STACK(false);
             }
+            print_stack(stack);
 
-            if (!expr_stack_push(stack, actual_symbol, NOT_E, parser->scanner->current_token)){
+            if (!expr_stack_push(stack, actual_symbol, NOT_E, actual_token_text)){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false4\n");
                 FREE_STACK(false);
             }
+            print_stack(stack);
 
             if ((!parser->scanner->get_next_token(parser->scanner))){
                 //printf("%d",parser->scanner->current_token->type);
                 //printf("false5\n");
                 FREE_STACK(false);
             }
+            print_stack(stack);
+            printf("zahodyt");
             break;
 
         case E:
-            expr_stack_push(stack, actual_symbol, NOT_E, parser->scanner->current_token);
+            expr_stack_push(stack, actual_symbol, NOT_E, actual_token_text);
 
             if ((!parser->scanner->get_next_token(parser->scanner))){
                 //printf("%d",parser->scanner->current_token->type);
@@ -608,6 +538,7 @@ bool expression(parser_t *parser)
             }
             break;
         }
+        print_stack(stack);
         if ((expr_stack_top(stack)->symbol != E_NONTERM) && (parser->scanner->current_token->type == OPERATOR_LEFT_BRACKET)){
             count_brackets += 1;
         }
