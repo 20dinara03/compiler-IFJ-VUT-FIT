@@ -23,7 +23,7 @@
 #define JAND(_t) && _safe_and(self, rule, JUMPIFNEQ, _t) && // jump &&
 #define OR || _safe_or(self, rule) ||
 
-#define scope_var(name, type) self->symbol_table->insert(self->symbol_table, name, "0", type, false)
+#define scope_var(name) self->symbol_table->insert(self->symbol_table, name, "0", NIL, false)
 #define scope_func(name, type) self->symbol_table->insert(self->symbol_table, name, "0", type, true)
 #define scope_find(name) self->symbol_table->find_g(self->symbol_table, name)
 #define expl_new_scope(type) self->symbol_table->push_frame(&self->symbol_table, NULL, type);
@@ -45,14 +45,6 @@
         self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
 
 define_logging(parser)
-
-
-arg_type dictionary[KEYWORD_VOID + 1] = {
-        [INT_LITERAL] = INT,
-        [DOUBLE_LITERAL] = FLOAT,
-        [STRING_LITERAL] = STRING,
-        [KEYWORD_VOID] = VOID,
-};
 
 parser_t* init_parser(scanner_t* scanner) {
     parser_t *self = malloc(sizeof(parser_t));
@@ -219,7 +211,6 @@ bool parseCodeLine(parser_t *self) {
 bool parseFunctionDefinition(parser_t *self) {
     log("function_definition ::= function_header '{' statements '}'")
 
-    new_scope
     new_code_frame
         if (parseFunctionHeader(self)) {
             pass = token_is("{") && parseStatements(self) && token_is("}");
@@ -248,8 +239,8 @@ bool parseFunctionHeader(parser_t *self) {
              parseOptionalResultType(self, &func_type);
         else
             exit_failure(SYNTAXIS_ANALYSIS_ERR);
-
         scope_func(function, func_type);
+        new_scope
 
         return true;
     }
@@ -258,6 +249,14 @@ bool parseFunctionHeader(parser_t *self) {
 
 bool parseOptionalResultType(parser_t *self, arg_type* func_type) {
     log("optional_result_type ::= ':' type | ''")
+
+    arg_type dictionary[KEYWORD_VOID + 1] = {
+            [INT_LITERAL] = INT,
+            [DOUBLE_LITERAL] = FLOAT,
+            [STRING_LITERAL] = STRING,
+            [KEYWORD_VOID] = VOID,
+    };
+
     if (token_is(":")) {
         *func_type = dictionary[token->type];
         parseType(self);
@@ -278,12 +277,11 @@ bool parseFunctionNParam(parser_t *self) {
 bool parseFunctionParam(parser_t *self) {
     log("function_param ::= type variable_identifier")
 
-    types_t type = token->type;
     if (parseType(self)) {
         char identifier[strlen(token->text)];
         strcpy(identifier, token->text);
 
-        scope_var(identifier, dictionary[type]);
+        scope_var(identifier);
 
         bool pass = parseVariableIdentifier(self);
 
