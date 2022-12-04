@@ -8,17 +8,26 @@
 
 declare_logging(parser)
 
+typedef enum
+{
+	FUNC_VARIABLE,
+	RETURN,
+	ASSINGNMENT,
+    CONDITION,
+	STATEMENT
+} scope_type_t;
+
 typedef struct parser_t {
     code_stack_t *code_stack;
     code_stack_t *function_code_stack;
     code_block_t *current_block;
+    symbol_table_t *symbol_table;
     bool definition_stage;
     code_block_t* (*get_current_block)(struct parser_t *self);
     code_stack_t* (*get_current_stack)(struct parser_t *self);
     int counter;
 
     scanner_t *scanner;
-    symbol_table_t *symbol_table;
     parser_logging_t *logger;
     void (*free)(struct parser_t *self);
     bool (*parse)(struct parser_t *self);
@@ -51,9 +60,9 @@ bool parseWhile(parser_t *self);
 bool parseCondition(parser_t *self);
 bool parseConditionElse(parser_t *self);
 bool parseIdentifierAssignment(parser_t *self);
-bool parseAssignment(parser_t *self);
+bool parseAssignment(parser_t *self, string variable_name);
 bool parseReturn(parser_t *self);
-bool parseExpression(parser_t *self);
+bool parseExpression(parser_t *self, scope_type_t scope_type, string variable_name);
 bool parseType(parser_t *self);
 
 parser_t* init_parser(scanner_t* scanner);

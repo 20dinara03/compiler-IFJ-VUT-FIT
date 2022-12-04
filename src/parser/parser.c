@@ -655,7 +655,7 @@ bool parseVariableFuncIdentifier(parser_t *self, bool built_in, symbol_variable_
         return true;
     }
 
-    else if (parseExpression(self))
+    else if (parseExpression(self, FUNC_VARIABLE, identifier))
     {
         if ((token_type == STRING_LITERAL || token_type == INT_LITERAL || token_type == DOUBLE_LITERAL) && !built_in)
         {
@@ -699,10 +699,9 @@ bool parseStatement(parser_t *self)
 bool parseStrictStatement(parser_t *self)
 {
     log("strict_statement ::= identifier_assignment | expression | return");
-    bool pass = parseIdentifierAssignment(self) OR parseExpression(self) OR parseReturn(self);
+    bool pass = parseIdentifierAssignment(self) OR parseExpression(self, STATEMENT, NULL) OR parseReturn(self);
     return pass;
 }
-
 bool parseOptionalStatement(parser_t *self)
 {
     log("optional_statement ::= condition | while");
@@ -720,7 +719,7 @@ bool parseWhile(parser_t *self)
         new_code_frame;
         frame_add_line(as LABEL(label(WHILE)));
 
-        pass = token_is("(") AND parseExpression(self) AND token_is(")");
+        pass = token_is("(") AND parseExpression(self, CONDITION, NULL) AND token_is(")");
 
         frame_add_line(as JUMPIFNEQ(label(WHILE_END), new_arg(TF, RESULT), new_arg(STRING, "bool@true")));
 
@@ -746,7 +745,7 @@ bool parseCondition(parser_t *self)
     if (token_is("if"))
     {
         new_code_frame;
-        pass = token_is("(") AND parseExpression(self) AND token_is(")") JAND(ELSE)
+        pass = token_is("(") AND parseExpression(self, CONDITION, NULL) AND token_is(")") JAND(ELSE)
             token_is("{") AND parseStatements(self) AND token_is("}");
 
         pass = pass CAND(ELSE) parseConditionElse(self);
@@ -782,7 +781,7 @@ bool parseIdentifierAssignment(parser_t *self)
     strcpy(variable_name, token->text);
     if (parseVariableIdentifier(self, NULL, NIL))
     {
-        bool pass = parseAssignment(self);
+        bool pass = parseAssignment(self, variable_name);
 
         if (!pass)
             exit_failure(SYNTAXIS_ANALYSIS_ERR);
@@ -795,10 +794,11 @@ bool parseIdentifierAssignment(parser_t *self)
     return false;
 }
 
-bool parseAssignment(parser_t *self)
+bool parseAssignment(parser_t *self, string variable_name)
 {
     log("assignment ::= '=' expression | '+=' expression | '-=' expression | '*=' expression | '/=' expression");
-    bool pass = token_is("=") AND parseExpression(self);
+
+    bool pass = token_is("=") AND parseExpression(self, ASSINGNMENT, variable_name);
     return pass;
 }
 
@@ -808,9 +808,16 @@ bool parseReturn(parser_t *self)
 
     if (token_is("return"))
     {
-        bool pass = parseExpression(self);
-        frame_add_line(as MOVE(new_arg(LF, RESULT), new_arg(TF, RESULT)));
+        string variable_name;
+        if (self->symbol_table->frame_type == GF){
+            variable_name = NULL;
+        }
+        else{
+            variable_name = self->symbol_table->frame_name;
+        }
+        bool pass = parseExpression(self, RETURN, variable_name);//function name
 
+        frame_add_line(as MOVE(new_arg(LF, RESULT), new_arg(TF, RESULT)));
         if (!self->definition_stage)
             frame_add_line(as EXIT(new_arg(TF, RESULT)));
 
@@ -819,9 +826,13 @@ bool parseReturn(parser_t *self)
     return false;
 }
 
-bool parseExpression(parser_t *self)
+bool parseExpression(parser_t *self, scope_type_t scope_type, string variable_name)
 {
-    log("expression") bool result = expression(self);
+    log("expression")
+    //printf("var_name = %s\n",variable_name);
+    bool result = expression(self, scope_type, variable_name);
+    // printf("%s\n", self->scanner->current_token->text);
+    //printf("expression %d\n", result);
     return result;
 }
 
