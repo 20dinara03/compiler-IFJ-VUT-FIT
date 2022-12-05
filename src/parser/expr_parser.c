@@ -1,10 +1,10 @@
 #include "expr_parser.h"
-#define st parser->symbol_table
-#define st_get(name) parser->symbol_table->find(parser->symbol_table,name)
-#define st_get_type(name) parser->symbol_table->find_g(parser->symbol_table,name)
-#define st_assign(target,name,type) parser->symbol_table->find(parser->symbol_table,name)->assign(parser->symbol_table->find(parser->symbol_table,name),nane,type)
-#define st_debug parser->symbol_table->debug(parser->symbol_table)
-#define current_token parser->scanner->current_token
+#define st self->symbol_table
+#define st_get(name) self->symbol_table->find(self->symbol_table, name)
+#define st_get_type(name) self->symbol_table->find_g(self->symbol_table, name)
+#define st_assign(target, name, type) self->symbol_table->find(self->symbol_table, name)->assign(self->symbol_table->find(self->symbol_table, name), nane, type)
+#define st_debug self->symbol_table->debug(self->symbol_table)
+#define current_token self->scanner->current_token
 // stack
 
 #define FREE_STACK(_return)     \
@@ -14,42 +14,44 @@
         return _return;         \
     } while (0)
 
-//#define scope_var(name) self->symbol_table->insert(self->symbol_table, name, "0", NIL, false)
+// #define scope_var(name) self->symbol_table->insert(self->symbol_table, name, "0", NIL, false)
 
-void print_stack(expr_stack_t* stack){
-    const char* dict_types[] = {
-        [PLUS] = "PLUS",			// +
-	[MINUS] = "MINUS",			// -
-	[MUL] = "MUL",			// *
-	[DIV] = "DIV",			// /
-	[EQ] = "EQ",				// ===
-    [CONC] = "CONC",           // .
-	[N_EQ] = "N_EQ",			// !==
-	[L_EQ] = "L_EQ",			// <=
-	[LESS] = "LESS",			// <
-	[M_EQ] = "M_EQ",			// >=
-	[MORE] = "MORE",			// >
-	[LEFT_BRACKET] = "LEFT_BRACKET",	// (
-	[RIGHT_BRACKET] = "RIGHT_BRACKET",	// )
-	[ID] = "ID",		// ID
-	[INT_NUMBER] = "INT_NUMBER",		// int
-	[DOUBLE_NUMBER] = "DOUBLE_NUMBER",	// double
-	[STRING_LINE] = "STRING_LINE",			// string
-    [NULL_TYPE] = "NULL_TYPE",
-	[DOLLAR] = "DOLLAR",			// $
-	[STOP] = "STOP",			// <
-	[E_NONTERM] = "E_NONTERM"		// non-terminal
+void print_stack(expr_stack_t *stack)
+{
+    const char *dict_types[] = {
+        [PLUS] = "PLUS",                   // +
+        [MINUS] = "MINUS",                 // -
+        [MUL] = "MUL",                     // *
+        [DIV] = "DIV",                     // /
+        [EQ] = "EQ",                       // ===
+        [CONC] = "CONC",                   // .
+        [N_EQ] = "N_EQ",                   // !==
+        [L_EQ] = "L_EQ",                   // <=
+        [LESS] = "LESS",                   // <
+        [M_EQ] = "M_EQ",                   // >=
+        [MORE] = "MORE",                   // >
+        [LEFT_BRACKET] = "LEFT_BRACKET",   // (
+        [RIGHT_BRACKET] = "RIGHT_BRACKET", // )
+        [ID] = "ID",                       // ID
+        [INT_NUMBER] = "INT_NUMBER",       // int
+        [DOUBLE_NUMBER] = "DOUBLE_NUMBER", // double
+        [STRING_LINE] = "STRING_LINE",     // string
+        [NULL_TYPE] = "NULL_TYPE",
+        [DOLLAR] = "DOLLAR",      // $
+        [STOP] = "STOP",          // <
+        [E_NONTERM] = "E_NONTERM" // non-terminal
     };
     printf("STACK_LOG:\t");
-    for(expr_stack_item_t*item = stack->top; item != NULL; item = item->next){
-        printf("%s,\t",dict_types[item->symbol]);
+    for (expr_stack_item_t *item = stack->top; item != NULL; item = item->next)
+    {
+        printf("%s,\t", dict_types[item->symbol]);
     }
     printf("\n");
 }
 
 int prec_table[8][8] =
     {
-    //|+- | */| r | ( | ) | i |   $ |
+        //|+- | */| r | ( | ) | i |   $ |
         {R, L, R, L, R, L, N, R},
         {R, R, R, L, R, L, N, R},
         {L, L, N, L, R, L, L, R},
@@ -69,24 +71,23 @@ int prec_table[8][8] =
 
 // 	{ S , S , S , S , N , S ,   N }  /// $
 
-arg_type retype_E(non_term_type_t non_term_type){
-    switch(non_term_type){
-        case INT_E:
-            return INT;
-        case DOUBLE_E:
-            return FLOAT;
-	    case STRING_E:
-            return STRING;
-        case NULL_E:
-            return NIL;
-	    default:
-            exit_failure(-1);
-            return -1;
+arg_type retype_E(non_term_type_t non_term_type)
+{
+    switch (non_term_type)
+    {
+    case INT_E:
+        return INT;
+    case DOUBLE_E:
+        return FLOAT;
+    case STRING_E:
+        return STRING;
+    case NULL_E:
+        return NIL;
+    default:
+        exit_failure(-1);
+        return -1;
     }
 }
-
-
-
 
 void expr_stack_init(expr_stack_t *stack)
 {
@@ -184,7 +185,8 @@ bool expr_stack_insert_after_term(expr_stack_t *stack, stack_symbols symbol, non
 
 void expr_stack_free(expr_stack_t *stack)
 {
-    while (expr_stack_pop(stack));
+    while (expr_stack_pop(stack))
+        ;
 }
 // stack
 
@@ -346,7 +348,7 @@ bool test_rule(int num, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_sta
     return false;
 }
 
-bool reduce_by_rule(parser_t* parser, expr_stack_t *stack)
+bool reduce_by_rule(parser_t *parser, expr_stack_t *stack)
 {
     expr_stack_item_t *op1 = NULL;
     expr_stack_item_t *op2 = NULL;
@@ -373,8 +375,10 @@ bool reduce_by_rule(parser_t* parser, expr_stack_t *stack)
         comp_types = semantic_analysis(parser, op1, op2, op3, &non_term_type);
     }
     else
+    {
         return false;
-    //printf("comp_type %d", comp_types);
+    }
+    // printf("comp_type %d", comp_types);
     if (is_rule && comp_types)
     {
         expr_stack_pop_some(stack, count + 1);
@@ -388,88 +392,109 @@ bool reduce_by_rule(parser_t* parser, expr_stack_t *stack)
     return true;
 }
 
-
-bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_stack_item_t *op3, non_term_type_t* non_term_type)
+bool semantic_analysis(parser_t *self, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_stack_item_t *op3, non_term_type_t *non_term_type)
 {
-    //printf("%s", op1->actual_token_text);
-	bool op1_to_double = false;
-	bool op3_to_double = false;
-	//bool op1_to_int = false;
-	//bool op3_to_int = false;
+    // printf("%s", op1->actual_token_text);
+    bool op1_to_double = false;
+    bool op3_to_double = false;
+    // bool op1_to_int = false;
+    // bool op3_to_int = false;
     op1_to_double = op1_to_double;
     op3_to_double = op3_to_double;
-    //printf("insemantic\n");
-    if (op2 == NULL && op3 == NULL){
-        symbol_variable_t* symbol_variable;
-        switch (op1->symbol){
-            case INT_NUMBER:
+    // printf("insemantic\n");
+    if (op2 == NULL && op3 == NULL)
+    {
+        symbol_variable_t *symbol_variable = NULL;
+        switch (op1->symbol)
+        {
+        case INT_NUMBER:
+            *non_term_type = INT_E;
+            break;
+        case DOUBLE_NUMBER:
+            *non_term_type = DOUBLE_E;
+            break;
+        case STRING_LINE:
+            *non_term_type = STRING_E;
+            break;
+        case NULL_TYPE:
+            *non_term_type = NULL_E;
+            break;
+        case ID:
+            // printf("inid\n");
+            // printf("%p\n", parser->symbol_table);
+            // st_debug;
+            // printf("%s\n",op1->actual_token_text);
+            symbol_variable = st_get(op1->actual_token_text);
+
+            if (symbol_variable == NULL)
+            {
+                // FREE STACK
+                exit_failure(SEMANTIC_UNDEFINED_VAR_ERR);
+            }
+            switch (symbol_variable->type)
+            {
+            case INT:
                 *non_term_type = INT_E;
                 break;
-            case DOUBLE_NUMBER:
-                *non_term_type = DOUBLE_E;
-                break;
-            case STRING_LINE:
+            case STRING:
                 *non_term_type = STRING_E;
                 break;
-            case NULL_TYPE:
+            case FLOAT:
+                *non_term_type = DOUBLE_E;
+                break;
+            case NIL:
                 *non_term_type = NULL_E;
                 break;
-            case ID:
-                //printf("inid\n");
-                //printf("%p\n", parser->symbol_table);
-                //st_debug;
-                //printf("%s\n",op1->actual_token_text);
-                symbol_variable = st_get(op1->actual_token_text);
-                //printf("hhhhhhhh %d\n",symbol_variable->type);
-                switch(symbol_variable->type){
-                    case INT:
-                        *non_term_type = INT_E;
-                        break;
-                    case STRING:
-                        *non_term_type = STRING_E;
-                        break;
-                    case FLOAT:
-                        *non_term_type = DOUBLE_E;
-                        break;
-                    case NIL:
-                        *non_term_type = NULL_E;
-                        break;
-                    default:
-                        //printf("1exit\n");
-                        return false;
-                }
-                break;
             default:
-                //printf("2exit\n");
+                // printf("1exit\n");
                 return false;
+            }
+            break;
+        default:
+            // printf("2exit\n");
+            return false;
         }
+        frame_add_line(as PUSHS(new_arg(retype_E(*non_term_type), op1->actual_token_text)));
     }
-    else if(op1->symbol == E_NONTERM && op3->symbol == E_NONTERM){
-        switch(op2->symbol){
-            case PLUS:
-            case MINUS:
-            case MUL:
-            case DIV:
-                if ((op1->non_term_type >= 2) || (op3->non_term_type >= 2)){
-                    return false;
-                }
-                if (op1->non_term_type == INT_E && op3->symbol == DIV && op3->non_term_type == INT_E){
+    else if (op1->symbol == E_NONTERM && op3->symbol == E_NONTERM)
+    {
+        switch (op2->symbol)
+        {
+        case PLUS:
+        case MINUS:
+        case MUL:
+        case DIV:
+            
+            if ((op1->non_term_type >= 2) || (op3->non_term_type >= 2))
+            {
+                return false;
+            }
+            if (op1->non_term_type == INT_E && op3->symbol == DIV && op3->non_term_type == INT_E)
+            {
+                op3_to_double = true;
+                op1_to_double = true;
+                *non_term_type = DOUBLE_E;
+            }
+            if (op1->non_term_type != op3->non_term_type)
+            {
+                *non_term_type = DOUBLE_E;
+                if (op1->non_term_type == DOUBLE_E)
+                {
+                    frame_add_line(as INT2FLOATS());
                     op3_to_double = true;
+                }
+                else
+                {
+                    // frame_add_line(as INT2FLOATS());
                     op1_to_double = true;
-                    *non_term_type = DOUBLE_E;
                 }
-                if  (op1->non_term_type != op3->non_term_type){
-                    *non_term_type = DOUBLE_E;
-                    if (op1->non_term_type == DOUBLE_E){
-                        op3_to_double = true;
-                    }
-                    else{
-                        op1_to_double = true;
-                    }
-                }
-                break;
-            default:
-                break;
+            }
+            if(op2->symbol == PLUS){
+                frame_add_line(as ADDS());
+            }
+            break;
+        default:
+            break;
 
             // case CONC:
             //     //if 1.1
@@ -483,18 +508,14 @@ bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item
 
             // case M_EQ:
 
-            // case MORE: 
-            //switch type of non_term_type, check op1 op3 return if false if not return then generace
+            // case MORE:
+            // switch type of non_term_type, check op1 op3 return if false if not return then generace
         }
     }
     return true;
 }
 
-
-
-
-
-bool expression(parser_t *parser, scope_type_t scope_type, string variable_name)
+bool expression(parser_t *self, expr_type_t expr_type, string variable_name)
 {
     int count_brackets = 0;
     expr_stack_t *stack = (expr_stack_t *)malloc(sizeof(expr_stack_t));
@@ -508,81 +529,88 @@ bool expression(parser_t *parser, scope_type_t scope_type, string variable_name)
     do
     {
         string actual_token_text = NULL;
-        if ((current_token->type == IDENTIFIER)){
+        if ((current_token->type == IDENTIFIER))
+        {
             malloc_s(actual_token_text, char, strlen(current_token->text));
             strcpy(actual_token_text, current_token->text);
-            if (!parseFunctionCall(parser)){
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("false1\n");
+            if (!parseFunctionCall(self))
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("false1\n");
                 FREE_STACK(false);
             }
-            else{
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("true1\n");
+            else
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("true1\n");
                 actual_symbol = ID;
             }
         }
-        else{
+        else
+        {
             actual_symbol = get_symbol_from_token(current_token);
             malloc_s(actual_token_text, char, strlen(current_token->text));
             strcpy(actual_token_text, current_token->text);
         }
 
-        //printf("bravck %d\n", count_brackets);
-        
-        
+        // printf("bravck %d\n", count_brackets);
+
         top_stack_terminal = expr_stack_top_term(stack);
 
-        if (top_stack_terminal == NULL){
-            //printf("%d",parser->scanner->current_token->type);
-            //printf("false1\n");
+        if (top_stack_terminal == NULL)
+        {
+            // printf("%d",parser->scanner->current_token->type);
+            // printf("false1\n");
             FREE_STACK(false);
         }
-        //print_stack(stack);
-        //printf("Vstup %d\n",actual_symbol);
-        // //printf("brscket %d\n",count_brackets);
+        // print_stack(stack);
+        // printf("Vstup %d\n",actual_symbol);
+        //  //printf("brscket %d\n",count_brackets);
         switch (prec_table[get_prec_table_index(top_stack_terminal->symbol)][get_prec_table_index(actual_symbol)])
         {
         case L:
-            //printf("ljkgyfkutckucfcty");
-            
-            if (!expr_stack_insert_after_term(stack, STOP, NOT_E, NULL)){
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("false3\n");
-                FREE_STACK(false);
-            }
-            
+            // printf("ljkgyfkutckucfcty");
 
-            if (!expr_stack_push(stack, actual_symbol, NOT_E, actual_token_text)){
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("false4\n");
+            if (!expr_stack_insert_after_term(stack, STOP, NOT_E, NULL))
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("false3\n");
                 FREE_STACK(false);
             }
-            
 
-            if ((!parser->scanner->get_next_token(parser->scanner))){
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("false5\n");
+            if (!expr_stack_push(stack, actual_symbol, NOT_E, actual_token_text))
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("false4\n");
                 FREE_STACK(false);
             }
-            //print_stack(stack);
-            //printf("zahodyt");
+
+            if ((!self->scanner->get_next_token(self->scanner)))
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("false5\n");
+                FREE_STACK(false);
+            }
+            // print_stack(stack);
+            // printf("zahodyt");
             break;
 
         case E:
             expr_stack_push(stack, actual_symbol, NOT_E, actual_token_text);
 
-            if ((!parser->scanner->get_next_token(parser->scanner))){
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("false6\n");
+            if ((!self->scanner->get_next_token(self->scanner)))
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("false6\n");
                 FREE_STACK(false);
             }
             break;
 
         case R:
-            if ((!reduce_by_rule(parser, stack))){
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("false7\n");
+            if ((!reduce_by_rule(self, stack)))
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("false7\n");
                 FREE_STACK(false);
             }
             break;
@@ -590,101 +618,119 @@ bool expression(parser_t *parser, scope_type_t scope_type, string variable_name)
         case N:
             if (actual_symbol == DOLLAR && top_stack_terminal->symbol == DOLLAR)
                 success = true;
-            else{
-                //printf("%d",parser->scanner->current_token->type);
-                //printf("%d", actual_symbol);
-                //printf("false8\n");
+            else
+            {
+                // printf("%d",parser->scanner->current_token->type);
+                // printf("%d", actual_symbol);
+                // printf("false8\n");
                 FREE_STACK(false);
             }
             break;
         }
 
-        if ((expr_stack_top(stack)->symbol != E_NONTERM) && (current_token->type == OPERATOR_LEFT_BRACKET)){
+        if ((expr_stack_top(stack)->symbol != E_NONTERM) && (current_token->type == OPERATOR_LEFT_BRACKET))
+        {
             count_brackets += 1;
         }
-        if ((expr_stack_top(stack)->symbol != E_NONTERM) && (current_token->type == OPERATOR_RIGHT_BRACKET)){
+        if ((expr_stack_top(stack)->symbol != E_NONTERM) && (current_token->type == OPERATOR_RIGHT_BRACKET))
+        {
             count_brackets -= 1;
-            if (count_brackets < 0){
+            if (count_brackets < 0)
+            {
                 if (expr_stack_top(stack)->symbol != PLUS && expr_stack_top(stack)->symbol != MINUS &&
-	                expr_stack_top(stack)->symbol != MUL && expr_stack_top(stack)->symbol != DIV &&
-	                expr_stack_top(stack)->symbol != EQ && expr_stack_top(stack)->symbol != CONC &&
-	                expr_stack_top(stack)->symbol != N_EQ && expr_stack_top(stack)->symbol != L_EQ &&
-	                expr_stack_top(stack)->symbol != LESS && expr_stack_top(stack)->symbol != M_EQ &&
-	                expr_stack_top(stack)->symbol != MORE)
+                    expr_stack_top(stack)->symbol != MUL && expr_stack_top(stack)->symbol != DIV &&
+                    expr_stack_top(stack)->symbol != EQ && expr_stack_top(stack)->symbol != CONC &&
+                    expr_stack_top(stack)->symbol != N_EQ && expr_stack_top(stack)->symbol != L_EQ &&
+                    expr_stack_top(stack)->symbol != LESS && expr_stack_top(stack)->symbol != M_EQ &&
+                    expr_stack_top(stack)->symbol != MORE)
                 {
                     expr_stack_free(stack);
                     return true;
                 }
-                else{
+                else
+                {
                     expr_stack_free(stack);
-                    //printf("khgv");
+                    // printf("khgv");
                     return false;
                 }
-            } 
+            }
         }
     } while (!success);
 
     // //printf("%d", expr_stack_top(stack)->symbol);
 
     expr_stack_item_t *final_non_terminal = expr_stack_top(stack);
-    if (final_non_terminal == NULL){
-        //printf("%d",parser->scanner->current_token->type);
-        //printf("false9\n");
+    if (final_non_terminal == NULL)
+    {
+        // printf("%d",parser->scanner->current_token->type);
+        // printf("false9\n");
         FREE_STACK(false);
     }
-    if (final_non_terminal->symbol != E_NONTERM){
-        //printf("%d",parser->scanner->current_token->type);
-        //printf("false10\n");
+    if (final_non_terminal->symbol != E_NONTERM)
+    {
+        // printf("%d",parser->scanner->current_token->type);
+        // printf("false10\n");
         FREE_STACK(false);
     }
-    //printf("%d",parser->scanner->current_token->type);
-    //printf("true10\n");
-    // symbol_variable_t * arg = var->find_arg(var, variable_name);
-    //                 arg->assign(arg, NULL, )
+    // printf("%d",parser->scanner->current_token->type);
+    // printf("true10\n");
+    //  symbol_variable_t * arg = var->find_arg(var, variable_name);
+    //                  arg->assign(arg, NULL, )
     symbol_variable_t *var = NULL;
-    switch(scope_type){
-        case FUNC_VARIABLE:
-            if ((var = st_get(st->frame_name))){
-                if (var->find_arg_g(var, variable_name) != retype_E(final_non_terminal->non_term_type)){
-                    exit_failure(4);
+    switch (expr_type)
+    {
+    case FUNC_VARIABLE:
+        if ((var = st_get(st->frame_name)))
+        {
+            if (var->find_arg_g(var, variable_name) != retype_E(final_non_terminal->non_term_type))
+            {
+                exit_failure(SEM_RUN_ARGS_OR_RETURN_FUNC_ERR);
+            }
+        }
+        else
+        {
+            exit_failure(SEMANTIC_UNDEFINED_VAR_ERR);
+        }
+        break;
+    case ASSINGNMENT:
+        if ((var = st_get(variable_name)))
+        {
+            var->assign(var, NULL, retype_E(final_non_terminal->non_term_type));
+            frame_add_line(as DEFVAR(new_arg(var->type, var->name))); //создает переменную
+            frame_add_line(as POPS(new_arg(TF, RESULT)));
+        }
+        else
+        {
+            exit_failure(SEMANTIC_UNDEFINED_VAR_ERR);
+        }
+        break;
+    case RETURN:
+        if (variable_name == NULL)
+        {
+            // return in main
+        }
+        else
+        {
+            if ((var = st_get(st->frame_name)))
+            {
+                if (var->type != retype_E(final_non_terminal->non_term_type))
+                {
+                    exit_failure(SEM_RUN_ARGS_OR_RETURN_FUNC_ERR);
                 }
             }
-            else{
-                exit_failure(5);
+            else
+            {
+                exit_failure(SEMANTIC_UNDEFINED_VAR_ERR);
             }
-            break;
-        case ASSINGNMENT:
-            if ((var = st_get(variable_name))){
-                var->assign(var, NULL, retype_E(final_non_terminal->non_term_type));
-                
-            }
-            else{
-                exit_failure(5);
-            }
-            break;
-        case RETURN:
-            if(variable_name == NULL){
-                //return in main
-            }
-            else{
-                if ((var = st_get(st->frame_name))){
-                    if (var->type != retype_E(final_non_terminal->non_term_type)){
-                        exit_failure(4);
-                    }
-                }
-                else{
-                    exit_failure(5);
-            }
+        }
+        break;
+    case CONDITION:
+        break;
 
-            }
-            break;
-        case CONDITION:
-            break;
-
-	    case STATEMENT:
-            break;
+    case STATEMENT:
+        break;
     }
-    //st_debug;
+    // st_debug;
     expr_stack_free(stack);
     return true;
 }

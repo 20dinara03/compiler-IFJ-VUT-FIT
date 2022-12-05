@@ -79,9 +79,7 @@ typedef struct
     expr_stack_t *stack;
 } expr_parser_t;
 
-
-
-bool expression(parser_t *parser, scope_type_t scope_type, string variable_name);
+bool expression(parser_t *parser, expr_type_t expr_type, string variable_name);
 bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_stack_item_t *op3, non_term_type_t* non_term_type);
 
 #endif

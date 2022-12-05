@@ -826,14 +826,13 @@ bool parseReturn(parser_t *self)
     return false;
 }
 
-bool parseExpression(parser_t *self, scope_type_t scope_type, string variable_name)
+bool parseExpression(parser_t *self, expr_type_t expr_type, string variable_name)
 {
-    log("expression")
-    //printf("var_name = %s\n",variable_name);
-    bool result = expression(self, scope_type, variable_name);
-    // printf("%s\n", self->scanner->current_token->text);
-    //printf("expression %d\n", result);
-    return result;
+    log("expression");
+    new_code_frame;
+    pass = expression(self, expr_type, variable_name);
+    end_code_frame;
+    return pass;
 }
 
 bool parseType(parser_t *self)

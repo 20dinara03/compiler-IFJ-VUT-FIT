@@ -57,10 +57,10 @@ typedef struct code_templater_t {
     char* (*MUL)(arg_t *var, arg_t *symb1, arg_t *symb2);
     char* (*DIV)(arg_t *var, arg_t *symb1, arg_t *symb2);
     char* (*IDIV)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*ADDS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*SUBS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*MULS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*DIVS)(arg_t *var, arg_t *symb1, arg_t *symb2);
+    char* (*ADDS)();
+    char* (*SUBS)();
+    char* (*MULS)();
+    char* (*DIVS)();
     char* (*IDIVS)(arg_t *var, arg_t *symb1, arg_t *symb2);
     char* (*LT)(arg_t *var, arg_t *symb1, arg_t *symb2);
     char* (*GT)(arg_t *var, arg_t *symb1, arg_t *symb2);
@@ -78,10 +78,10 @@ typedef struct code_templater_t {
     char* (*FLOAT2INT)(arg_t *var, arg_t *symb);
     char* (*INT2CHAR)(arg_t *var, arg_t *symb);
     char* (*STRI2INT)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*INT2FLOATS)(arg_t *var, arg_t *symb);
-    char* (*FLOAT2INTS)(arg_t *var, arg_t *symb);
-    char* (*INT2CHARS)(arg_t *var, arg_t *symb);
-    char* (*STRI2INTS)(arg_t *var, arg_t *symb1, arg_t *symb2);
+    char* (*INT2FLOATS)();
+    char* (*FLOAT2INTS)();
+    char* (*INT2CHARS)();
+    char* (*STRI2INTS)();
 
     // 10.4.4
     char* (*READ)(arg_t *var, arg_t *type); // TODO: type = int, float, string
@@ -194,9 +194,9 @@ CODE_FUNCTION_WITH_2_ARGS_DEC(MOVE)
 CODE_FUNCTION_WITH_2_ARGS_DEC(INT2FLOAT)
 CODE_FUNCTION_WITH_2_ARGS_DEC(FLOAT2INT)
 CODE_FUNCTION_WITH_2_ARGS_DEC(INT2CHAR)
-CODE_FUNCTION_WITH_2_ARGS_DEC(INT2FLOATS)
-CODE_FUNCTION_WITH_2_ARGS_DEC(FLOAT2INTS)
-CODE_FUNCTION_WITH_2_ARGS_DEC(INT2CHARS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(INT2FLOATS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(FLOAT2INTS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(INT2CHARS)
 CODE_FUNCTION_WITH_2_ARGS_DEC(READ)
 CODE_FUNCTION_WITH_2_ARGS_DEC(STRLEN)
 CODE_FUNCTION_WITH_2_ARGS_DEC(TYPE)
@@ -206,10 +206,10 @@ CODE_FUNCTION_WITH_3_ARGS_DEC(SUB)
 CODE_FUNCTION_WITH_3_ARGS_DEC(MUL)
 CODE_FUNCTION_WITH_3_ARGS_DEC(DIV)
 CODE_FUNCTION_WITH_3_ARGS_DEC(IDIV)
-CODE_FUNCTION_WITH_3_ARGS_DEC(ADDS)
-CODE_FUNCTION_WITH_3_ARGS_DEC(SUBS)
-CODE_FUNCTION_WITH_3_ARGS_DEC(MULS)
-CODE_FUNCTION_WITH_3_ARGS_DEC(DIVS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(ADDS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(SUBS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(MULS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(DIVS)
 CODE_FUNCTION_WITH_3_ARGS_DEC(IDIVS)
 CODE_FUNCTION_WITH_3_ARGS_DEC(LT)
 CODE_FUNCTION_WITH_3_ARGS_DEC(GT)

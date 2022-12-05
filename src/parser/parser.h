@@ -6,16 +6,30 @@
 #include "../code_generation/code_templates.h"
 #include "../common/symbol-table.h"
 
+#define arg(type, name) new_arg(type, name)
+#define simple_arg(name) new_simple_arg(name)
+#define label(type) new_label(self->code_stack, type)
+#define simple_label(name) new_simple_label(name)
+
+#define frame_add_line self->current_block->add_line
+#define as self->current_block, self->code_stack->templater->
+#define new_code_frame                                              \
+    self->current_block = self->code_stack->push(self->code_stack); \
+    bool pass;
+
+#define end_code_frame                             \
+    self->code_stack->pop(self->code_stack, true); \
+    self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
+
 declare_logging(parser)
 
-typedef enum
-{
-	FUNC_VARIABLE,
-	RETURN,
-	ASSINGNMENT,
-    CONDITION,
-	STATEMENT
-} scope_type_t;
+    typedef enum {
+        FUNC_VARIABLE,
+        RETURN,
+        ASSINGNMENT,
+        CONDITION,
+        STATEMENT
+    } expr_type_t;
 
 typedef struct parser_t {
     code_stack_t *code_stack;
@@ -62,7 +76,7 @@ bool parseConditionElse(parser_t *self);
 bool parseIdentifierAssignment(parser_t *self);
 bool parseAssignment(parser_t *self, string variable_name);
 bool parseReturn(parser_t *self);
-bool parseExpression(parser_t *self, scope_type_t scope_type, string variable_name);
+bool parseExpression(parser_t *self, expr_type_t expr_type, string variable_name);
 bool parseType(parser_t *self);
 
 parser_t* init_parser(scanner_t* scanner);
