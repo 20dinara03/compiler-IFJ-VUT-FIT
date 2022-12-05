@@ -1,7 +1,6 @@
 /*
- * Welcome to IFJ/IAL 2022/2023 project
+ * Implementace překladače imperativního jazyka IFJ22
  *
- * authors:
  *      Oleksandr Turytsia  | xturyt00 | team-leader
  *      Mark Barzali        | xbarza00
  *      Dinara Garipova     | xgarip00
