@@ -61,21 +61,25 @@
 #define label(type) new_label(self->code_stack, type)
 #define simple_label(name) new_simple_label(name)
 
-#define frame_add_line self->current_block->add_line
-#define as self->current_block, self->code_stack->templater->
+#define frame_add_line self->get_current_block(self)->add_line
+#define as self->get_current_block(self), self->get_current_stack(self)->templater->
 #define new_code_frame                                              \
-    self->current_block = self->code_stack->push(self->code_stack); \
+    self->get_current_stack(self)->push(self->get_current_stack(self), self->definition_stage);          \
     bool pass;
 
-#define end_code_frame                             \
-    self->code_stack->pop(self->code_stack, true); \
-    self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
+#define end_code_frame                                                          \
+    self->get_current_stack(self)->pop(self->get_current_stack(self), self->definition_stage);    \
+    self->get_current_stack(self)->blocks[self->code_stack->size - 1];
 
 define_logging(parser)
 
 
 code_block_t* get_active_code_block(parser_t* self) {
-    return self->definition_stage ? self->code_stack->top(self->code_stack) : self->function_code_stack->top(self->function_code_stack);
+    return self->get_current_stack(self)->blocks[self->get_current_stack(self)->size - 1];
+}
+
+code_stack_t *get_active_code_stack(parser_t *self) {
+    return self->definition_stage ? self->function_code_stack : self->code_stack;
 }
 
 parser_t *init_parser(scanner_t *scanner)
@@ -87,6 +91,7 @@ parser_t *init_parser(scanner_t *scanner)
     self->function_code_stack = new_code_stack(); // GIGA OOP
     self->definition_stage = false;
     self->get_current_block = get_active_code_block;
+    self->get_current_stack = get_active_code_stack;
 
     if (!self->scanner->logger->active && !self->logger->active)
         self->code_stack->active = true;
@@ -171,6 +176,8 @@ void destruct_parser(parser_t *self)
         free_parser_logging(self->logger);
     if (self->code_stack != NULL)
         self->code_stack->free(self->code_stack);
+    if (self->function_code_stack != NULL)
+        self->function_code_stack->free(self->function_code_stack);
     if (self != NULL)
         free(self);
 }
@@ -195,6 +202,11 @@ bool _safe_and(parser_t *self, char *rule, code_type type, code_type type2)
         frame_add_line(as JUMPIFNEQ(label(type2), arg(TF, RESULT), arg(BOOL, "true")));
     else if (type == IF || type == WHILE)
         frame_add_line(as LABEL(label(type)));
+    else if (type == ELSE) {
+        frame_add_line(as JUMP(label(IF_END)));
+        frame_add_line(as LABEL(label(type)));
+    }
+
 
     if (token != NULL)
     {
@@ -251,6 +263,7 @@ bool parseVariableIdentifier(parser_t *self, string function, arg_type type)
     }
     else {
         if (pass) {
+            frame_add_line(as DEFVAR(new_arg(TF, param)));
             scope_var(param);
         }
     }
@@ -266,7 +279,11 @@ bool parseProg(parser_t *self)
     {
         new_code_frame
         printf("%s\n", ".IFJcode22");
-        frame_add_line(as JUMP(simple_label("main")));
+        printf("%s\n", "JUMP %main%"); // TODO: as const
+        frame_add_line(as LABEL(simple_label("%main%")));
+        frame_add_line(as CREATEFRAME());
+        frame_add_line(as DEFVAR(new_arg(TF, RESULT)));
+        scope_var(RESULT);
         pass = token_is("declare") AND token_is("(") AND token_is("strict_types")
             AND token_is("=") AND token_is("1") AND token_is(")") AND token_is(";")
                 AND parseCodeLines(self);
@@ -305,6 +322,7 @@ bool parseCodeLine(parser_t *self)
 bool parseFunctionDefinition(parser_t *self)
 {
     log("function_definition ::= function_header '{' statements '}'");
+    self->definition_stage = true;
     new_code_frame;
 
     arg_type function_type = NIL;
@@ -325,11 +343,13 @@ bool parseFunctionDefinition(parser_t *self)
             frame_add_line(as RETURN());
             end_code_frame;
             end_scope;
+            self->definition_stage = false;
 
             return true;
         }
     }
     end_code_frame;
+    self->definition_stage = false;
     return false;
 }
 
@@ -337,7 +357,10 @@ bool parseFunctionHeader(parser_t *self, string function_name, arg_type*function
 {
     log("function_header ::= 'function' function_identifier '(' function_params ')' optional_result_type");
 
-    frame_add_line(as LABEL(simple_label(function_name)));
+    code_block_t* cd = self->get_current_block(self);
+    code_stack_t *cs = self->get_current_stack(self);
+
+    cd->add_line(cd,cs->templater->LABEL(simple_label(function_name)));
 
     scope_func(function_name, NIL);
     if (parseIdentifier(self) AND token_is("(") AND parseFunctionParams(self, function_name) AND token_is(")")) {
@@ -420,20 +443,23 @@ bool parseFunctionCall(parser_t *self)
         if (token_is("("))              // skip "(" token and
             strcpy(param, token->text); // save first param in case of empty params
 
-        frame_add_line(as DEFVAR(new_arg(TF, RESULT)));
-        frame_add_line(as PUSHFRAME());
-        frame_add_line(as CREATEFRAME());
-
         bool pass = parseVariableFuncIdentifiers(self, built_in, &func) AND token_is_not_jump(")"); // parse next rules
         if (equal(function_name, "write"))
             frame_add_line(as WRITE(new_arg(TF, RESULT)));
         else if (equal(function_name, "read"))
             // TODO: 2nd arg is table->search(token->text)->type
-            frame_add_line(as READ(new_arg(TF, RESULT), new_arg(STRING, "int")));
+            frame_add_line(as READ(new_arg(TF, RESULT), new_arg(STRING, param)));
         else if (equal(function_name, "exit"))
             frame_add_line(as EXIT(simple_arg(param)));
         else {
+            if (self->symbol_table->find_g(self->symbol_table, RESULT) == -1) {
+                frame_add_line(as DEFVAR(new_arg(TF, RESULT)));
+                scope_var(RESULT);
+            }
+            frame_add_line(as PUSHFRAME());
+            frame_add_line(as CREATEFRAME());
             frame_add_line(as CALL(simple_label(function_name)));
+            frame_add_line(as POPFRAME());
         }
 
         return pass;
@@ -477,7 +503,7 @@ bool parseVariableFuncIdentifier(parser_t *self, bool built_in, symbol_variable_
 
     else if (parseExpression(self))
     {
-        if (token_type == STRING_LITERAL || token_type == INT_LITERAL || token_type == DOUBLE_LITERAL)
+        if ((token_type == STRING_LITERAL || token_type == INT_LITERAL || token_type == DOUBLE_LITERAL) && !built_in)
         {
             if (*func != NULL) {
                 frame_add_line(as MOVE(new_arg(TF, (*func)->arg_next->name), new_arg(token_to_type(token_type), identifier)));
@@ -572,11 +598,12 @@ bool parseCondition(parser_t *self)
         new_scope("else",NIL);
         pass = pass CAND(ELSE) parseConditionElse(self);
         end_scope
+        frame_add_line(as LABEL(label(IF_END)));
 
         end_code_frame
 
-            if (!pass)
-                exit_failure(SYNTAXIS_ANALYSIS_ERR);
+        if (!pass)
+            exit_failure(SYNTAXIS_ANALYSIS_ERR);
 
         return true;
     }
@@ -608,7 +635,11 @@ bool parseIdentifierAssignment(parser_t *self)
         if (!pass)
             exit_failure(SYNTAXIS_ANALYSIS_ERR);
 
-        frame_add_line(as MOVE(new_arg(TF, variable_name), new_arg(TF, RESULT)));
+        code_block_t * cd = self->get_current_block(self);
+
+        int a = self->symbol_table->find_g(self->symbol_table, variable_name);
+
+        cd->add_line(as MOVE(new_arg(TF, variable_name), new_arg(TF, RESULT)));
         return pass;
     }
     return false;

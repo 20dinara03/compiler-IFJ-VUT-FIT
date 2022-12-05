@@ -12,6 +12,7 @@ typedef struct code_templater_t code_templater_t;
 typedef enum {
     IF,
     ELSE,
+    IF_END,
     FUNCTION_DEC,
     FUNCTION_CALL,
     WHILE,
@@ -51,13 +52,13 @@ typedef struct code_stack_t {
     code_templater_t* templater;
     bool active;
     code_block_t* (*top)(struct code_stack_t *self);
-    code_block_t* (*push)(struct code_stack_t *self);
+    code_block_t* (*push)(struct code_stack_t *self, bool release);
     void (*pop)(struct code_stack_t *self, bool release);
     void (*free)(struct code_stack_t *self);
 } code_stack_t;
 code_stack_t* new_code_stack();
 void destruct_code_stack(code_stack_t *self);
-code_block_t* code_stack_push(code_stack_t *self);
+code_block_t* code_stack_push(code_stack_t *self, bool release);
 void code_stack_pop(code_stack_t *self, bool release);
 code_block_t* code_stack_top(code_stack_t *self);
 
