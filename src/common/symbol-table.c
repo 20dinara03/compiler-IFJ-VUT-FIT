@@ -89,22 +89,24 @@ static symbol_table_types symbol_table_insert(symbol_table_t *self, string name,
  */
 static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
 {
-    if (self == NULL)
-    {
-        return NULL;
-    }
-    if (self->top == NULL)
-    {
-        return symbol_table_find(self->next, name);
-    }
+    bool is_lf = false;
     symbol_node_t *node = self->top;
     while (node != NULL)
     {
+        printf("%s\n", name);
         if (strcmp(name, node->var->name) < 0)
         {
             if (node->left == NULL)
             {
-                return symbol_table_find(self->next, name);
+                if (self->next != NULL && is_lf == false)
+                {
+                    is_lf = true;
+                    node = self->next->top;
+                }
+                else
+                {
+                    return NULL;
+                }
             }
             else
             {
@@ -115,7 +117,15 @@ static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
         {
             if (node->right == NULL)
             {
-                return symbol_table_find(self->next, name);
+                if (self->next != NULL && is_lf == false)
+                {
+                    is_lf = true;
+                    node = self->next->top;
+                }
+                else
+                {
+                    return NULL;
+                }
             }
             else
             {
@@ -159,6 +169,23 @@ static void free_symbol_node(symbol_node_t **self)
     *self = NULL;
 }
 
+static void set_frame(symbol_node_t *self, arg_type frame)
+{
+    if (self == NULL)
+        return;
+
+    symbol_variable_t *param = self->var->arg_next;
+    while (param != NULL)
+    {
+        param->frame = frame;
+        param = param->arg_next;
+    }
+
+    self->var->frame = frame;
+    set_frame(self->left, frame);
+    set_frame(self->right, frame);
+}
+
 /**
  * @brief Adds scope on top of the stack
  *
@@ -166,13 +193,17 @@ static void free_symbol_node(symbol_node_t **self)
  */
 static void push_frame(symbol_table_t **self, string name, arg_type type)
 {
-    symbol_table_t *new_scope = init_symbol_table(TF);
-    malloc_s(new_scope->frame_name, char, strlen(name == NULL ? "POPOVICH" : name));
+    symbol_table_t *new_scope = init_symbol_table();
+    malloc_s(new_scope->frame_name, char, strlen(name == NULL ? "POPOVICH" : name) + 1);
     if (name != NULL)
         strcpy(new_scope->frame_name, name);
     new_scope->top = NULL;
     new_scope->frame_type = type;
     new_scope->next = *self;
+    new_scope->bound = symbol_table_find(*self, name);
+    printf("%s\n", name);
+    (*self)->frame = LF;
+    set_frame((*self)->top, LF);
     *self = new_scope;
 }
 
@@ -187,6 +218,8 @@ static void pop_frame(symbol_table_t **self)
     {
         symbol_table_t *delete_scope = *self;
         *self = (*self)->next;
+        (*self)->frame = TF;
+        set_frame((*self)->top, TF);
         if (delete_scope->top != NULL)
         {
             delete_scope->top->free(&delete_scope->top);
@@ -220,7 +253,11 @@ static void symbol_table_debug(symbol_table_t *self)
     {
         return;
     }
-    printf("SCOPE %s, %s : %s\n", type_to_string(self->frame), self->frame_name, type_to_string(self->frame_type));
+    printf("[SCOPE] %s, %s : %s\n", type_to_string(self->frame), self->frame_name, type_to_string(self->frame_type));
+    if (self->bound != NULL)
+    {
+        printf("[in bound with]: %s\n", self->bound->name);
+    }
     symbol_table_traverse(self->top);
     symbol_table_debug(self->next);
 }
@@ -250,12 +287,17 @@ static symbol_node_t *init_symbol_node(string name, string value, arg_type type,
     return node;
 }
 
-symbol_table_t *init_symbol_table(arg_type frame)
+/**
+ * @brief Creates first TF
+ *
+ * @return symbol_table_t*
+ */
+symbol_table_t *init_symbol_table()
 {
     symbol_table_t *table = NULL;
     malloc_s(table, symbol_table_t, 1);
     table->frame_type = NIL;
-    table->frame = frame;
+    table->frame = TF;
     table->top = NULL;
     table->next = NULL;
     table->frame_name = NULL;

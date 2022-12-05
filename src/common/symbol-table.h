@@ -26,6 +26,8 @@ struct symbol_table_t
     /*Symbol table's outer scope*/
     symbol_table_t *next;
 
+    symbol_variable_t *bound;
+
     arg_type frame;
 
     void (*debug)(symbol_table_t *self);
@@ -42,6 +44,6 @@ struct symbol_table_t
  *
  * @return newly created symbol table, NOT NULL
  */
-symbol_table_t *init_symbol_table(arg_type frame);
+symbol_table_t *init_symbol_table();
 
 #endif
