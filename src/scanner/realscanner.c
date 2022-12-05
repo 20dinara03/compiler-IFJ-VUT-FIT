@@ -738,7 +738,7 @@ scanner_t *init_scanner()
 {
     scanner_t *self = NULL;
 
-    memo_allocate(self, scanner_t, 1);
+    malloc_s(self, scanner_t, 1);
 
     self->get_next_token = Scan;
     self->white_space_reading = true;

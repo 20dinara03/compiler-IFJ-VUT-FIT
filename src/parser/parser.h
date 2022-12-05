@@ -10,7 +10,10 @@ declare_logging(parser)
 
 typedef struct parser_t {
     code_stack_t *code_stack;
+    code_stack_t *function_code_stack;
     code_block_t *current_block;
+    bool definition_stage;
+    code_block_t* (*get_current_block)(struct parser_t *self);
 
     scanner_t *scanner;
     symbol_table_t *symbol_table;
@@ -29,15 +32,15 @@ bool parseOptionalEnding(parser_t *self);
 bool parseCodeLines(parser_t *self);
 bool parseCodeLine(parser_t *self);
 bool parseFunctionDefinition(parser_t *self);
-bool parseFunctionHeader(parser_t *self, char **function_name, arg_type *function_type);
+bool parseFunctionHeader(parser_t *self, char *function_name, arg_type *function_type);
 bool parseOptionalResultType(parser_t *self, char* function_name, arg_type* function_type);
 bool parseFunctionParams(parser_t *self, char* function_name);
 bool parseFunctionNParam(parser_t *self, char *function_name);
 bool parseFunctionParam(parser_t *self, char *function_name);
 bool parseFunctionCall(parser_t *self);
-bool parseVariableFuncIdentifiers(parser_t *self, bool);
-bool parseVariableNIdentifier(parser_t *self, bool);
-bool parseVariableFuncIdentifier(parser_t *self, bool);
+bool parseVariableFuncIdentifiers(parser_t *self, bool, symbol_variable_t** func);
+bool parseVariableNIdentifier(parser_t *self, bool, symbol_variable_t** func);
+bool parseVariableFuncIdentifier(parser_t *self, bool, symbol_variable_t** func);
 bool parseStatements(parser_t *self);
 bool parseStatement(parser_t *self);
 bool parseStrictStatement(parser_t *self);

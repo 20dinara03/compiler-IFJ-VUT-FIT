@@ -4,33 +4,13 @@ declare(strict_types=1);
 // Program 1: Vypocet faktorialu (iterativne)
 // Hlavni telo programu
 
-function factorial(int $n): int {
-    $result = 1;
-    return $result;
+function factorial(int $n, int $c): int {
+    $a = 1;
+    return $a;
 }
 
-function get_int(): int {
-    return 2;
+function main(): void {
+    factorial(5, $b);
 }
-
-factorial(5);
-factorial(get_int());
-
-write("Zadejte cislo pro vypocet faktorialu\n");
-$a = readi();
-if ($a === null) {
-    if ($a) {
-        write("Nespravny vstup\n");
-    }
-    write("Faktorial nelze spocitat\n");
-} else {}
-if ($a <= 0) {
-    write("Faktorial nelze spocitat\n");
-} else {
-    $vysl = 1.e+10;
-    $vysl = $vysl * $a;
-    $a = $a * 1 / 5;
-}
-write("Vysledek je: ", $vysl, "\n");
 
 ?>

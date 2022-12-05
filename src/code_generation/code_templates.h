@@ -111,7 +111,7 @@ code_templater_t* new_code_templater();
 void free_code_templater(code_templater_t *templater);
 
 
-#define MAX_CODE_LINE_LENGTH 80
+#define MAX_CODE_LINE_LENGTH 128
 
 // function with void
 #define CODE_FUNCTION_WITHOUT_ARGS_DEC(_name) char* code_##_name();

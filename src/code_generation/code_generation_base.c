@@ -79,6 +79,7 @@ code_stack_t* new_code_stack() {
     self->blocks = malloc(sizeof(code_block_t*));
     self->templater = new_code_templater();
     self->free = destruct_code_stack;
+    self->top = code_stack_top;
     self->push = code_stack_push;
     self->pop = code_stack_pop;
     return self;
@@ -97,9 +98,8 @@ void destruct_code_stack(code_stack_t *self) {
 code_block_t* code_stack_push(code_stack_t *self) {
     self->blocks = realloc(self->blocks, sizeof(code_block_t*) * (self->size + 1));
     self->blocks[self->size] = new_code_block(++self->id);
-    if (self->size > 0 && self->active) {
+    if (self->size > 0 && self->active)
         self->blocks[self->size - 1]->release(self->blocks[self->size - 1]);
-    }
     return self->blocks[self->size++];
 }
 
@@ -109,4 +109,8 @@ void code_stack_pop(code_stack_t *self, bool release) {
         self->blocks[self->size]->release(self->blocks[self->size]);
     self->blocks[self->size]->free(self->blocks[self->size]);
     self->blocks[self->size] = NULL;
+}
+
+code_block_t* code_stack_top(code_stack_t *self) {
+    return self->blocks[self->size - 1];
 }
