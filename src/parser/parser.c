@@ -67,9 +67,8 @@
     self->get_current_stack(self)->push(self->get_current_stack(self), self->definition_stage);          \
     bool pass;
 
-#define end_code_frame                                                          \
-    self->get_current_stack(self)->pop(self->get_current_stack(self), self->definition_stage);    \
-    self->get_current_stack(self)->blocks[self->code_stack->size - 1];
+#define end_code_frame \
+    self->get_current_stack(self)->pop(self->get_current_stack(self), self->definition_stage);
 
 define_logging(parser)
 
@@ -452,7 +451,7 @@ bool parseFunctionCall(parser_t *self)
         else if (equal(function_name, "exit"))
             frame_add_line(as EXIT(simple_arg(param)));
         else {
-            if (self->symbol_table->find_g(self->symbol_table, RESULT) == -1) {
+            if (self->symbol_table->find_g(self->symbol_table, RESULT) == BLACKHOLE) {
                 frame_add_line(as DEFVAR(new_arg(TF, RESULT)));
                 scope_var(RESULT);
             }
@@ -636,8 +635,6 @@ bool parseIdentifierAssignment(parser_t *self)
             exit_failure(SYNTAXIS_ANALYSIS_ERR);
 
         code_block_t * cd = self->get_current_block(self);
-
-        int a = self->symbol_table->find_g(self->symbol_table, variable_name);
 
         cd->add_line(as MOVE(new_arg(TF, variable_name), new_arg(TF, RESULT)));
         return pass;

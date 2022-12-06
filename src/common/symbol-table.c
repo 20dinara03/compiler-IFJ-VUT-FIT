@@ -144,7 +144,7 @@ static arg_type symbol_table_find_g(symbol_table_t *self, string name)
     symbol_variable_t *var = symbol_table_find(self, name);
 
     if (var == NULL)
-        return -1;
+        return BLACKHOLE;
 
     return var->frame;
 }
@@ -209,8 +209,10 @@ static void pop_frame(symbol_table_t **self)
     {
         symbol_table_t *delete_scope = *self;
         *self = (*self)->next;
-        (*self)->frame = TF;
-        set_frame((*self)->top, TF);
+        if (*self != NULL) {
+            (*self)->frame = TF;
+            set_frame((*self)->top, TF);
+        }
         if (delete_scope->top != NULL)
         {
             delete_scope->top->free(&delete_scope->top);

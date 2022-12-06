@@ -16,6 +16,7 @@ typedef enum {
     BOOL,
     NIL,
     VOID,
+    BLACKHOLE,
 } arg_type;
 
 typedef struct arg_t {
