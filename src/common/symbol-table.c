@@ -93,7 +93,6 @@ static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
     symbol_node_t *node = self->top;
     while (node != NULL)
     {
-        printf("%s\n", name);
         if (strcmp(name, node->var->name) < 0)
         {
             if (node->left == NULL)
@@ -174,13 +173,6 @@ static void set_frame(symbol_node_t *self, arg_type frame)
     if (self == NULL)
         return;
 
-    symbol_variable_t *param = self->var->arg_next;
-    while (param != NULL)
-    {
-        param->frame = frame;
-        param = param->arg_next;
-    }
-
     self->var->frame = frame;
     set_frame(self->left, frame);
     set_frame(self->right, frame);
@@ -201,7 +193,6 @@ static void push_frame(symbol_table_t **self, string name, arg_type type)
     new_scope->frame_type = type;
     new_scope->next = *self;
     new_scope->bound = symbol_table_find(*self, name);
-    printf("%s\n", name);
     (*self)->frame = LF;
     set_frame((*self)->top, LF);
     *self = new_scope;
