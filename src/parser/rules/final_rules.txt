@@ -15,7 +15,7 @@ code_line ::= function_definition
 function_definition ::= function_header '{' statements '}'
 function_header ::= 'function' function_identifier '(' function_params ')' optional_result_type
 optional_result_type ::= ''
-optional_result_type ::= ':' type
+optional_result_type ::= ':' type_func
 function_params ::= ''
 function_params ::= function_param function_n_param
 function_n_param ::= ''
@@ -58,6 +58,15 @@ expression ::= function_call
 /* expression ::= + - / * ^ .... */
 	
 	types
+type_func ::= '?int' 
+type_func ::= '?bool’ 
+type_func ::= '?string' 
+type_func ::= '?float'
+type_func ::= 'int' 
+type_func ::= 'bool’ 
+type_func ::= 'string' 
+type_func ::= 'float'
+type_func ::= 'void'
 type ::= '?int' 
 type ::= '?bool’ 
 type ::= '?string' 

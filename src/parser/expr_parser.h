@@ -57,6 +57,7 @@ typedef enum
 	DOUBLE_E,	// double
 	STRING_E,			// string
     NULL_E,
+	BOOL_E,
 	NOT_E		// non-terminal
 } non_term_type_t;
 

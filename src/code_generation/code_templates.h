@@ -13,6 +13,10 @@ typedef enum {
     INT,
     FLOAT,
     STRING,
+    INT_NIL,
+    FLOAT_NIL,
+    STRING_NIL,
+    BOOL_NIL,
     BOOL,
     NIL,
     VOID,
@@ -62,18 +66,18 @@ typedef struct code_templater_t {
     char* (*MULS)();
     char* (*DIVS)();
     char* (*IDIVS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*LT)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*GT)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*EQ)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*LTS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*GTS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*EQS)(arg_t *var, arg_t *symb1, arg_t *symb2);
+    char* (*LT)();
+    char* (*GT)();
+    char* (*EQ)();
+    char* (*LTS)();
+    char* (*GTS)();
+    char* (*EQS)();
     char* (*AND)(arg_t *var, arg_t *symb1, arg_t *symb2);
     char* (*OR)(arg_t *var, arg_t *symb1, arg_t *symb2);
     char* (*NOT)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*ANDS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*ORS)(arg_t *var, arg_t *symb1, arg_t *symb2);
-    char* (*NOTS)(arg_t *var, arg_t *symb1, arg_t *symb2);
+    char* (*ANDS)();
+    char* (*ORS)();
+    char* (*NOTS)();
     char* (*INT2FLOAT)(arg_t *var, arg_t *symb);
     char* (*FLOAT2INT)(arg_t *var, arg_t *symb);
     char* (*INT2CHAR)(arg_t *var, arg_t *symb);
@@ -214,17 +218,17 @@ CODE_FUNCTION_WITH_3_ARGS_DEC(IDIVS)
 CODE_FUNCTION_WITH_3_ARGS_DEC(LT)
 CODE_FUNCTION_WITH_3_ARGS_DEC(GT)
 CODE_FUNCTION_WITH_3_ARGS_DEC(EQ)
-CODE_FUNCTION_WITH_3_ARGS_DEC(LTS)
-CODE_FUNCTION_WITH_3_ARGS_DEC(GTS)
-CODE_FUNCTION_WITH_3_ARGS_DEC(EQS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(LTS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(GTS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(EQS)
 CODE_FUNCTION_WITH_3_ARGS_DEC(AND)
 CODE_FUNCTION_WITH_3_ARGS_DEC(OR)
 CODE_FUNCTION_WITH_3_ARGS_DEC(NOT)
-CODE_FUNCTION_WITH_3_ARGS_DEC(ANDS)
-CODE_FUNCTION_WITH_3_ARGS_DEC(ORS)
-CODE_FUNCTION_WITH_3_ARGS_DEC(NOTS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(ANDS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(ORS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(NOTS)
 CODE_FUNCTION_WITH_3_ARGS_DEC(STRI2INT)
-CODE_FUNCTION_WITH_3_ARGS_DEC(STRI2INTS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(STRI2INTS)
 CODE_FUNCTION_WITH_3_ARGS_DEC(CONCAT)
 CODE_FUNCTION_WITH_3_ARGS_DEC(GETCHAR)
 CODE_FUNCTION_WITH_3_ARGS_DEC(SETCHAR)

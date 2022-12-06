@@ -22,6 +22,10 @@ typedef enum {
     BUILT_IN,
     BUILT_IN_END,
     NULLPTR,
+    EXPR_JMP_1,
+    EXPR_JMP_2,
+    EXPR_JMP_3,
+    EXPR_JMP_4
 } code_type;
 
 typedef struct code_line_t {

@@ -4,7 +4,7 @@
 #define register(_name) templater->_name = code_##_name
 
 arg_t* new_arg(arg_type frame, char *name) {
-    char* arg_type_transalate[9] = {
+    char* arg_type_transalate[] = {
         [LF] = "LF",
         [TF] = "TF",
         [GF] = "GF",
@@ -39,6 +39,11 @@ label_t *new_label(code_stack_t *stack, code_type name, int number) {
         [BUILT_IN] = "BUILT_IN",
         [BUILT_IN_END] = "BUILT_IN_END",
         [NULLPTR] = "NULL",
+        [EXPR_JMP_1] = "\%EXPR_JMP_1",
+        [EXPR_JMP_2] = "\%EXPR_JMP_2",
+        [EXPR_JMP_3] = "\%EXPR_JMP_3",
+        [EXPR_JMP_4] = "\%EXPR_JMP_4"
+
     };
     label_t *self = (label_t*)malloc(sizeof(label_t));
     self->free = free_label;
@@ -199,15 +204,15 @@ CODE_FUNCTION_WITH_3_ARGS(IDIVS)
 CODE_FUNCTION_WITH_3_ARGS(LT)
 CODE_FUNCTION_WITH_3_ARGS(GT)
 CODE_FUNCTION_WITH_3_ARGS(EQ)
-CODE_FUNCTION_WITH_3_ARGS(LTS)
-CODE_FUNCTION_WITH_3_ARGS(GTS)
-CODE_FUNCTION_WITH_3_ARGS(EQS)
+CODE_FUNCTION_WITHOUT_ARGS(LTS)
+CODE_FUNCTION_WITHOUT_ARGS(GTS)
+CODE_FUNCTION_WITHOUT_ARGS(EQS)
 CODE_FUNCTION_WITH_3_ARGS(AND)
 CODE_FUNCTION_WITH_3_ARGS(OR)
 CODE_FUNCTION_WITH_3_ARGS(NOT)
-CODE_FUNCTION_WITH_3_ARGS(ANDS)
-CODE_FUNCTION_WITH_3_ARGS(ORS)
-CODE_FUNCTION_WITH_3_ARGS(NOTS)
+CODE_FUNCTION_WITHOUT_ARGS(ANDS)
+CODE_FUNCTION_WITHOUT_ARGS(ORS)
+CODE_FUNCTION_WITHOUT_ARGS(NOTS)
 CODE_FUNCTION_WITH_3_ARGS(CONCAT)
 CODE_FUNCTION_WITH_3_ARGS(GETCHAR)
 CODE_FUNCTION_WITH_3_ARGS(SETCHAR)
