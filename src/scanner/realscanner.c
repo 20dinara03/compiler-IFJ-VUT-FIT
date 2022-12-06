@@ -81,7 +81,7 @@ token_t *scan_number(char cur_char)
             token->push_char(token, current);
             if (token->type == EXPONENTA || token->type == EXPONENTAL_OPERATOR)
             {
-                token->type = DOUBLE_LITERAL;
+                token->type = EXPONENTAL_DOUBLE_LITERAL;
             }
             break;
         case '.':
@@ -120,6 +120,9 @@ token_t *scan_number(char cur_char)
             }
             break;
         default:
+        if (token->type == DOUBLE_LITERAL){
+            scanf(token->text, "%a", token->text);
+        }
          if (current != EOF){
             fseek_and_token_end(current)
          }

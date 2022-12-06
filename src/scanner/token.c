@@ -65,7 +65,8 @@ const char *TOKEN_TYPE_TO_STRING[] = {
     [KEYWORD_RETURN] = "KEYWORD_RETURN",
     [KEYWORD_VOID] = "KEYWORD_VOID",
     [KEYWORD_WHILE] = "KEYWORD_WHILE",
-    [KEYWORD_STRING] = "KEYWORD_STRING"};
+    [KEYWORD_STRING] = "KEYWORD_STRING",
+    [EXPONENTAL_DOUBLE_LITERAL] = "EXPONENTAL_DOUBLE_LITERAL"};
 void push_char_in_token(token_t *self, char ch)
 {
     if (self->text == NULL)
