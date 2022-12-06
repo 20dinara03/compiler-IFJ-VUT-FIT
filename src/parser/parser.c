@@ -589,14 +589,10 @@ bool parseCondition(parser_t *self)
     if (token_is("if"))
     {
         new_code_frame;
-        new_scope("if",NIL);
         pass = token_is("(") AND parseExpression(self) AND token_is(")") JAND(ELSE)
             token_is("{") AND parseStatements(self) AND token_is("}");
-        end_scope;
 
-        new_scope("else",NIL);
         pass = pass CAND(ELSE) parseConditionElse(self);
-        end_scope
         frame_add_line(as LABEL(label(IF_END)));
 
         end_code_frame
@@ -651,10 +647,16 @@ bool parseAssignment(parser_t *self)
 
 bool parseReturn(parser_t *self)
 {
-    log("return ::= 'return' expression") if (token_is("return"))
+    log("return ::= 'return' expression")
+
+    if (token_is("return"))
     {
         bool pass = parseExpression(self);
         frame_add_line(as MOVE(new_arg(LF, RESULT), new_arg(TF, RESULT)));
+
+        if (!self->definition_stage)
+            frame_add_line(as EXIT(new_arg(TF, RESULT)));
+
         return pass;
     }
     return false;
