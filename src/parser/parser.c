@@ -42,7 +42,7 @@
     logging(a);         \
     logging("\n");
 
-#define None _None(self)
+#define None {}
 #define AND &&_safe_and(self, rule, NULLPTR, NULLPTR) &&
 #define CAND(_t) &&_safe_and(self, rule, _t, NULLPTR) &&   // code &&
 #define JAND(_t) &&_safe_and(self, rule, JUMPIFNEQ, _t) && // jump &&
@@ -55,10 +55,11 @@
 #define scope_get(name) self->symbol_table->find(self->symbol_table, name)
 #define new_scope(name, type) self->symbol_table->push_frame(&self->symbol_table, name, type);
 #define end_scope self->symbol_table->pop_frame(&self->symbol_table);
-
+#define register_not_found(name) if (scope_find(name) == BLACKHOLE) {frame_add_line(as DEFVAR(new_arg(TF, name))); \
+                                                                scope_var(name); }
 #define arg(type, name) new_arg(type, name)
 #define simple_arg(name) new_simple_arg(name)
-#define label(type) new_label(self->code_stack, type)
+#define label(type) new_label(self->code_stack, type, -1)
 #define simple_label(name) new_simple_label(name)
 
 #define frame_add_line self->get_current_block(self)->add_line
@@ -91,6 +92,7 @@ parser_t *init_parser(scanner_t *scanner)
     self->definition_stage = false;
     self->get_current_block = get_active_code_block;
     self->get_current_stack = get_active_code_stack;
+    self->counter = 0;
 
     if (!self->scanner->logger->active && !self->logger->active)
         self->code_stack->active = true;
@@ -144,12 +146,7 @@ bool _equal_token_type(parser_t *self, const char *t)
 
 bool _equal_not_jump(parser_t *self, const char *a, const char *b)
 {
-    self = self;
-    if (strcmp(a, b) == 0)
-    {
-        return true;
-    }
-    return false;
+    return strcmp(a, b) == 0;
 }
 
 void tryTrashToken(parser_t *self)
@@ -177,6 +174,8 @@ void destruct_parser(parser_t *self)
         self->code_stack->free(self->code_stack);
     if (self->function_code_stack != NULL)
         self->function_code_stack->free(self->function_code_stack);
+    if (self->symbol_table != NULL)
+        self->symbol_table->free(&self->symbol_table);
     if (self != NULL)
         free(self);
 }
@@ -223,17 +222,6 @@ bool _safe_or(parser_t *self, char *rule)
     indirect_log(rule) return false;
 }
 
-bool _None(parser_t *self)
-{
-    if (token != NULL)
-    {
-        logging("None | for token: ");
-        logging(token->text);
-        logging("\n");
-    }
-    return true;
-}
-
 bool parseIdentifier(parser_t *self)
 {
     token_not_null
@@ -276,6 +264,17 @@ bool parseProg(parser_t *self)
 
     if (token_is("<?php"))
     {
+        scope_func("reads", STRING);
+        scope_func("readi", INT);
+        scope_func("readf", FLOAT);
+        scope_func("write", NIL);
+        scope_func("floatval", FLOAT);
+        scope_func("intval", INT);
+        scope_func("strval", STRING);
+        scope_func("strlen", INT);
+        scope_func("substring", STRING);
+        scope_func("ord", INT);
+        scope_func("chr", STRING);
         new_code_frame
         printf("%s\n", ".IFJcode22");
         printf("%s\n", "JUMP %main%"); // TODO: as const
@@ -428,6 +427,21 @@ bool parseFunctionParam(parser_t *self, string function)
     return false;
 }
 
+int cmp_numstr(char *p1, char *p2)
+{
+    while (*p1 && (*p1 == '0'))
+        p1++;
+   while (*p2 && (*p2 == '0'))
+        p2++;
+    if (strcmp (p1, p2) == 0)
+        return 0;
+    else if (strlen(p1) > strlen(p2))
+        return 1;
+    else if (strlen(p1) < strlen(p2))
+        return -1;
+    return strcmp(p1, p2);
+}
+
 bool parseFunctionCall(parser_t *self)
 {
     log("function_call ::= function_identifier '(' variable_func_identifiers ')'");
@@ -435,21 +449,147 @@ bool parseFunctionCall(parser_t *self)
     strcpy(function_name, token->text);
     if (parseIdentifier(self))
     {
-        bool built_in = (equal(function_name, "write") || equal(function_name, "read") || equal(function_name, "exit"));
+        bool built_in = (equal(function_name, "write") || equal(function_name, "read") || equal(function_name, "exit")
+                || equal(function_name, "reads") || equal(function_name, "readi") || equal(function_name, "readf")
+                || equal(function_name, "floatval") || equal(function_name, "intval") || equal(function_name, "strval")
+                || equal(function_name, "strlen") || equal(function_name, "substring") || equal(function_name, "ord")
+                || equal(function_name, "chr"));
         char param[MAX_CODE_LINE_LENGTH];
         symbol_variable_t *func = scope_get(function_name);
+        arg_type type = -1;
 
-        if (token_is("("))              // skip "(" token and
-            strcpy(param, token->text); // save first param in case of empty params
+        if (token_is("(")) {              // skip "(" token and
+            strcpy(param, token->text);
+            if (built_in) {
+                self->counter++;
+                type = token_to_type(token->type);
+            }
+        } else
+            exit_failure(SYNTAXIS_ANALYSIS_ERR);
 
         bool pass = parseVariableFuncIdentifiers(self, built_in, &func) AND token_is_not_jump(")"); // parse next rules
         if (equal(function_name, "write"))
-            frame_add_line(as WRITE(new_arg(TF, RESULT)));
-        else if (equal(function_name, "read"))
-            // TODO: 2nd arg is table->search(token->text)->type
-            frame_add_line(as READ(new_arg(TF, RESULT), new_arg(STRING, param)));
-        else if (equal(function_name, "exit"))
-            frame_add_line(as EXIT(simple_arg(param)));
+            None // IS IMPLEMENTED in VariableFuncIdentifier
+        else if (equal(function_name, "reads") || equal(function_name, "readi") || equal(function_name, "readf")) {
+            register_not_found(RESULT)
+            register_not_found(FUN_RETURN)
+            frame_add_line(as MOVE(new_arg(TF, FUN_RETURN), new_arg(STRING, "")));
+            frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(STRING, "")));
+            frame_add_line(as LABEL(new_label(self->code_stack, BUILT_IN, self->counter)));
+            frame_add_line(as READ(new_arg(TF, FUN_RETURN), new_simple_arg("string")));
+            frame_add_line(as JUMPIFEQ(new_label(self->code_stack, BUILT_IN_END, self->counter),
+                                       new_arg(TF, FUN_RETURN), new_arg(NIL, "nil")));
+            frame_add_line(as CONCAT(new_arg(TF, RESULT), new_arg(TF, RESULT),
+                                     new_arg(TF, FUN_RETURN)));
+            // TODO: check what is comparing with EOF
+            frame_add_line(as JUMP(new_label(self->code_stack, BUILT_IN, self->counter)));
+            frame_add_line(as LABEL(new_label(self->code_stack, BUILT_IN_END, self->counter)));
+            if (equal(function_name, "readi") || equal(function_name, "readf")) {
+                frame_add_line(as STRI2INT(new_arg(TF, RESULT), new_arg(TF, RESULT),
+                                           new_arg(INT, "0")));
+                if (equal(function_name, "readf"))
+                    frame_add_line(as INT2FLOAT(new_arg(TF, RESULT), new_arg(TF, RESULT)));
+            }
+        }
+        else if (equal(function_name, "floatval")) {
+            register_not_found(RESULT)
+            if (type == STRING) {
+                frame_add_line(as STRI2INT(new_arg(TF, RESULT), new_arg(TF, param), new_arg(STRING, "0")));
+                frame_add_line(as INT2FLOAT(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else if (type == INT) {
+                frame_add_line(as INT2FLOAT(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else if (type == FLOAT) {
+                frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else
+                exit_failure(SEMANIC_OTHER_ERR);
+        }
+        else if (equal(function_name, "intval")) {
+            register_not_found(RESULT)
+            if (type == STRING) {
+                frame_add_line(as STRI2INT(new_arg(TF, RESULT), new_arg(TF, param), new_arg(STRING, "0")));
+            } else if (type == INT) {
+                frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else if (type == FLOAT) {
+                frame_add_line(as FLOAT2INT(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else
+                exit_failure(SEMANIC_OTHER_ERR);
+        }
+        else if (equal(function_name, "strval")) {
+            register_not_found(RESULT)
+            if (type == STRING) {
+                frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else if (type == INT) {
+                frame_add_line(as INT2FLOAT(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else if (type == FLOAT) {
+                frame_add_line(as FLOAT2INT(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else
+                exit_failure(SEMANIC_OTHER_ERR);
+        }
+        else if (equal(function_name, "strlen")) {
+            register_not_found(RESULT)
+            if (type == STRING) {
+                frame_add_line(as STRLEN(new_arg(TF, RESULT), new_arg(TF, param)));
+            } else
+                exit_failure(SEMANIC_OTHER_ERR);
+        }
+        else if (equal(function_name, "substring")) {
+            register_not_found(RESULT)
+            register_not_found(FUN_RETURN)
+            if (type == STRING) {
+                char* start = func->arg_next->arg_next->name;
+                char* end = func->arg_next->arg_next->arg_next->name;
+                int _len = (int)strlen(param);
+                char* len = malloc(sizeof(char) * (_len + 1));
+                sprintf(len, "%d", _len);
+
+                if (cmp_numstr(start, end) <= 0 || cmp_numstr(len, start) <= 0 ||
+                    cmp_numstr(len, end) <= 0, cmp_numstr(start, "0") < 0 || cmp_numstr(end, "0") < 0) {
+                    free(len);
+                    frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(STRING, " ")));
+                    return pass;
+                }
+                free(len);
+
+                char* counter = "%BUILT_IN_COUNTER%";
+                register_not_found(counter)
+                frame_add_line(as MOVE(new_arg(TF, counter), new_arg(INT, start)));
+                frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(STRING, "\\010")));
+                frame_add_line(as MOVE(new_arg(TF, FUN_RETURN), new_arg(TF, param)));
+                frame_add_line(as LABEL(label(BUILT_IN)));
+                frame_add_line(as GETCHAR(new_arg(TF, RESULT), new_arg(TF, FUN_RETURN),
+                                          new_arg(TF, start)));
+                frame_add_line(as ADD(new_arg(TF, counter), new_arg(TF, counter), new_arg(INT, "1")));
+                frame_add_line(as JUMPIFEQ(new_label(self->code_stack, BUILT_IN_END, self->counter),
+                                           new_arg(TF, counter), new_arg(INT, end)));
+                frame_add_line(as JUMP(new_label(self->code_stack, BUILT_IN, self->counter)));
+                frame_add_line(as LABEL(label(BUILT_IN_END)));
+            } else
+                exit_failure(SEMANIC_OTHER_ERR);
+        }
+        else if (equal(function_name, "ord")) {
+            char* helper = NULL;
+            malloc_s(helper, char, 3);
+            snprintf(helper, 2, "%c", *param); // read first char as ASCII
+
+            register_not_found(RESULT)
+            frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(INT, helper)));
+            free(helper);
+        }
+        else if (equal(function_name, "chr")) {
+            if (type != INT)
+                exit_failure(SEMANIC_OTHER_ERR);
+
+            char* helper = NULL;
+            int value = (int)strtol(param, NULL, 10);
+            malloc_s(helper, char, 3);
+            snprintf(helper, 2, "%c", value); // write to helper as ASCII
+
+            register_not_found(RESULT)
+            frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(STRING, helper)));
+            free(helper);
+        } else if (equal(function_name, "exit")) {
+                frame_add_line(as EXIT(simple_arg(param)));
+            }
         else {
             if (self->symbol_table->find_g(self->symbol_table, RESULT) == BLACKHOLE) {
                 frame_add_line(as DEFVAR(new_arg(TF, RESULT)));
@@ -496,6 +636,8 @@ bool parseVariableFuncIdentifier(parser_t *self, bool built_in, symbol_variable_
             } else {
                 exit_failure(SEMANTIC_UNDEFINED_FUNC_ERR); // undefined function is ST
             }
+        } else if ((*func)->name != NULL || strcmp((*func)->name, "write") == 0) {
+            frame_add_line(as WRITE(new_arg(token_to_type(token_type), identifier)));
         }
         return true;
     }
@@ -518,6 +660,8 @@ bool parseVariableFuncIdentifier(parser_t *self, bool built_in, symbol_variable_
             } else {
                 exit_failure(SEMANTIC_UNDEFINED_FUNC_ERR); // undefined function is ST
             }
+        } else if ( built_in && (*func)->name != NULL || strcmp((*func)->name, "write") == 0) {
+            frame_add_line(as WRITE(new_arg(token_to_type(token_type), identifier)));
         }
         return true;
     }

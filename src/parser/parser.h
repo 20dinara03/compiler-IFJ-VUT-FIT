@@ -15,6 +15,7 @@ typedef struct parser_t {
     bool definition_stage;
     code_block_t* (*get_current_block)(struct parser_t *self);
     code_stack_t* (*get_current_stack)(struct parser_t *self);
+    int counter;
 
     scanner_t *scanner;
     symbol_table_t *symbol_table;

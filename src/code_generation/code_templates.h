@@ -32,7 +32,7 @@ typedef struct label_t {
     char *name;
     void (*free)(struct label_t *self);
 } label_t;
-label_t *new_label(code_stack_t *node, code_type name);
+label_t *new_label(code_stack_t *node, code_type name, int number);
 label_t *new_simple_label(char *name);
 void free_label(label_t *self);
 
@@ -174,6 +174,9 @@ CODE_FUNCTION_WITHOUT_ARGS_DEC(PUSHFRAME)
 CODE_FUNCTION_WITHOUT_ARGS_DEC(POPFRAME)
 CODE_FUNCTION_WITHOUT_ARGS_DEC(RETURN)
 CODE_FUNCTION_WITHOUT_ARGS_DEC(CLEARS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(READS)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(READI)
+CODE_FUNCTION_WITHOUT_ARGS_DEC(READF)
 
 CODE_FUNCTION_WITH_LABEL_DEC(JUMPIFEQS)
 CODE_FUNCTION_WITH_LABEL_DEC(JUMPIFNEQS)

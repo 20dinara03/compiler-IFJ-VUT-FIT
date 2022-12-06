@@ -26,7 +26,7 @@ void free_arg(arg_t *self) {
     free(self);
 }
 
-label_t *new_label(code_stack_t *stack, code_type name) {
+label_t *new_label(code_stack_t *stack, code_type name, int number) {
     char* transalate[] = {
         [IF] = "IF",
         [ELSE] = "ELSE",
@@ -36,12 +36,18 @@ label_t *new_label(code_stack_t *stack, code_type name) {
         [FUNCTION_DEC] = "FUNCTION_DEC",
         [FUNCTION_CALL] = "FUNCTION_CALL",
         [LABEL_END] = "END",
+        [BUILT_IN] = "BUILT_IN",
+        [BUILT_IN_END] = "BUILT_IN_END",
         [NULLPTR] = "NULL",
     };
     label_t *self = (label_t*)malloc(sizeof(label_t));
     self->free = free_label;
     self->name = malloc(strlen(transalate[name]) + stack->size * 3);
-    sprintf(self->name, "%s", transalate[name]);
+    if (number == -1) {
+        sprintf(self->name, "%s", transalate[name]);
+    } else {
+        sprintf(self->name, "%s_%d", transalate[name], number);
+    }
 
     for (int i = 1; i < stack->size; i++) // i = 1 because stack[0] is global
         sprintf(self->name, "%s_%d", transalate[name], stack->blocks[i]->id);

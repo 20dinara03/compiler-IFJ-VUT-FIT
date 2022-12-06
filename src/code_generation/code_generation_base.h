@@ -19,6 +19,8 @@ typedef enum {
     WHILE_END,
     JUMPIFNEQ,
     LABEL_END,
+    BUILT_IN,
+    BUILT_IN_END,
     NULLPTR,
 } code_type;
 
