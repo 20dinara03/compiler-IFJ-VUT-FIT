@@ -4,6 +4,8 @@
 #include "parser.h"
 #include <stdio.h>
 
+
+
 typedef struct expr_stack_item_t expr_stack_item_t;
 
 typedef enum
@@ -82,5 +84,19 @@ typedef struct
 
 bool expression(parser_t *parser, expr_type_t expr_type, string variable_name);
 bool semantic_analysis(parser_t* parser, expr_stack_item_t *op1, expr_stack_item_t *op2, expr_stack_item_t *op3, non_term_type_t* non_term_type);
+
+#define arg(type, name) new_arg(type, name)
+#define simple_arg(name) new_simple_arg(name)
+#define label(type) new_label(self->code_stack, type, -1)
+#define simple_label(name) new_simple_label(name)
+
+#define frame_add_line self->get_current_block(self)->add_line
+#define as self->get_current_block(self), self->get_current_stack(self)->templater->
+#define new_code_frame                                                                          \
+    self->get_current_stack(self)->push(self->get_current_stack(self), self->definition_stage); \
+    bool pass;
+
+#define end_code_frame \
+    self->get_current_stack(self)->pop(self->get_current_stack(self), self->definition_stage);
 
 #endif

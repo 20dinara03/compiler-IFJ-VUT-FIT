@@ -6,21 +6,6 @@
 #include "../code_generation/code_templates.h"
 #include "../common/symbol-table.h"
 
-#define arg(type, name) new_arg(type, name)
-#define simple_arg(name) new_simple_arg(name)
-#define label(type) new_label(self->code_stack, type)
-#define simple_label(name) new_simple_label(name)
-
-#define frame_add_line self->current_block->add_line
-#define as self->current_block, self->code_stack->templater->
-#define new_code_frame                                              \
-    self->current_block = self->code_stack->push(self->code_stack); \
-    bool pass;
-
-#define end_code_frame                             \
-    self->code_stack->pop(self->code_stack, true); \
-    self->current_block = self->code_stack->blocks[self->code_stack->size - 1];
-
 declare_logging(parser)
 
     typedef enum {

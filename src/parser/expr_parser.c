@@ -847,6 +847,7 @@ bool expression(parser_t *self, expr_type_t expr_type, string variable_name)
     //  symbol_variable_t * arg = var->find_arg(var, variable_name);
     //                  arg->assign(arg, NULL, )
     symbol_variable_t *var = NULL;
+    static unsigned expr_counter = 0;
     switch (expr_type)
     {
     case FUNC_VARIABLE:
@@ -942,19 +943,19 @@ bool expression(parser_t *self, expr_type_t expr_type, string variable_name)
         if (final_non_terminal->non_term_type != BOOL_E){
 
             frame_add_line(as POPS(new_arg(TF, RESULT)));
-            
-            frame_add_line(as JUMPIFNEQ(label(EXPR_JMP_1), new_arg(TF, RESULT), new_arg(STRING, "")));
+
+            frame_add_line(as JUMPIFNEQ(new_label(self->code_stack, EXPR_JMP_1, expr_counter), new_arg(TF, RESULT), new_arg(STRING, "")));
             frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(BOOL, "false")));
-            frame_add_line(as LABEL(label(EXPR_JMP_1)));
-            frame_add_line(as JUMPIFNEQ(label(EXPR_JMP_2), new_arg(TF, RESULT), new_arg(INT, "0")));
+            frame_add_line(as LABEL(new_label(self->code_stack, EXPR_JMP_1,expr_counter)));
+            frame_add_line(as JUMPIFNEQ(new_label(self->code_stack, EXPR_JMP_2,expr_counter), new_arg(TF, RESULT), new_arg(INT, "0")));
             frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(BOOL, "false")));
-            frame_add_line(as LABEL(label(EXPR_JMP_2)));
-            frame_add_line(as JUMPIFNEQ(label(EXPR_JMP_3), new_arg(TF, RESULT), new_arg(FLOAT, "0.0")));
+            frame_add_line(as LABEL(new_label(self->code_stack, EXPR_JMP_2,expr_counter)));
+            frame_add_line(as JUMPIFNEQ(new_label(self->code_stack, EXPR_JMP_3,expr_counter), new_arg(TF, RESULT), new_arg(FLOAT, "0.0")));
             frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(BOOL, "false")));
-            frame_add_line(as LABEL(label(EXPR_JMP_3)));
-            frame_add_line(as JUMPIFNEQ(label(EXPR_JMP_4), new_arg(TF, RESULT), new_arg(NIL, "nil")));
+            frame_add_line(as LABEL(new_label(self->code_stack, EXPR_JMP_3,expr_counter)));
+            frame_add_line(as JUMPIFNEQ(new_label(self->code_stack, EXPR_JMP_4,expr_counter), new_arg(TF, RESULT), new_arg(NIL, "nil")));
             frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(BOOL, "false")));
-            frame_add_line(as LABEL(label(EXPR_JMP_4)));
+            frame_add_line(as LABEL(new_label(self->code_stack, EXPR_JMP_4, expr_counter)));
             frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(BOOL, "true")));
             // frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(BOOL, false)));
             // frame_add_line(as JUMPIFEQ(new_simple_label(), new_arg(TF, RESULT), new_arg(INT, "0")));
@@ -977,6 +978,7 @@ bool expression(parser_t *self, expr_type_t expr_type, string variable_name)
         frame_add_line(as POPS(new_arg(TF, TMP_RESULT)));
         break;
     }
+    expr_counter++;
     // st_debug;
     // printf("\n");
     expr_stack_free(&stack);

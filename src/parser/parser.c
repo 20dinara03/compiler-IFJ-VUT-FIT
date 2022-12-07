@@ -11,7 +11,7 @@
         return false;  \
     }
 #define token_is(b) _equal_token(self, b)
-#define token_is_not_jump(b) _equal_not_jump(self, token->text, b)
+#define token_is_not_jump(b) _equal_not_jump(token->text, b)
 #define token_type_is(b) _equal_token_type(self, b)
 #define equal(a, b) strcmp(a, b) == 0
 
@@ -157,7 +157,7 @@ bool _equal_token_type(parser_t *self, const char *t)
     return false;
 }
 
-bool _equal_not_jump(parser_t *self, const char *a, const char *b)
+bool _equal_not_jump(const char *a, const char *b)
 {
     return strcmp(a, b) == 0;
 }
@@ -556,7 +556,7 @@ bool parseFunctionCall(parser_t *self)
                 sprintf(len, "%d", _len);
 
                 if (cmp_numstr(start, end) <= 0 || cmp_numstr(len, start) <= 0 ||
-                    cmp_numstr(len, end) <= 0, cmp_numstr(start, "0") < 0 || cmp_numstr(end, "0") < 0) {
+                    cmp_numstr(len, end) <= 0|| cmp_numstr(start, "0") < 0 || cmp_numstr(end, "0") < 0) {
                     free(len);
                     frame_add_line(as MOVE(new_arg(TF, RESULT), new_arg(STRING, " ")));
                     return pass;
@@ -673,7 +673,7 @@ bool parseVariableFuncIdentifier(parser_t *self, bool built_in, symbol_variable_
             } else {
                 exit_failure(SEMANTIC_UNDEFINED_FUNC_ERR); // undefined function is ST
             }
-        } else if ( built_in && (*func)->name != NULL || strcmp((*func)->name, "write") == 0) {
+        } else if ( (built_in && (*func)->name != NULL) || strcmp((*func)->name, "write") == 0) {
             frame_add_line(as WRITE(new_arg(token_to_type(token_type), identifier)));
         }
         return true;
