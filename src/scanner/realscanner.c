@@ -121,7 +121,10 @@ token_t *scan_number(char cur_char)
             break;
         default:
         if (token->type == DOUBLE_LITERAL){
-            scanf(token->text, "%a", token->text);
+            double text;
+            text = strtod(token->text,NULL);
+            printf("%a",text);
+            sprintf(token->text, "%a", text);
         }
          if (current != EOF){
             fseek_and_token_end(current)
