@@ -8,6 +8,10 @@ static symbol_node_t *init_symbol_node(string name, string value, arg_type type,
 
 static string type_to_string(arg_type type)
 {
+    if (type >= BLACKHOLE)
+    {
+        return "TF";
+    }
     char *to_string[] = {
         [LF] = "LF",
         [TF] = "TF",
@@ -89,23 +93,20 @@ static symbol_table_types symbol_table_insert(symbol_table_t *self, string name,
  */
 static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
 {
-    bool is_lf = false;
+    if (self == NULL || self->frame == LF || name == NULL)
+        return NULL;
     symbol_node_t *node = self->top;
+    if (node == NULL)
+    {
+        return symbol_table_find(self->next, name);
+    }
     while (node != NULL)
     {
         if (strcmp(name, node->var->name) < 0)
         {
             if (node->left == NULL)
             {
-                if (self->next != NULL && is_lf == false)
-                {
-                    is_lf = true;
-                    node = self->next->top;
-                }
-                else
-                {
-                    return NULL;
-                }
+                return symbol_table_find(self->next, name);
             }
             else
             {
@@ -116,15 +117,7 @@ static symbol_variable_t *symbol_table_find(symbol_table_t *self, string name)
         {
             if (node->right == NULL)
             {
-                if (self->next != NULL && is_lf == false)
-                {
-                    is_lf = true;
-                    node = self->next->top;
-                }
-                else
-                {
-                    return NULL;
-                }
+                return symbol_table_find(self->next, name);
             }
             else
             {
@@ -183,18 +176,27 @@ static void set_frame(symbol_node_t *self, arg_type frame)
  *
  * @param symbol_table_t pointer to a current symbol_table_t*
  */
-static void push_frame(symbol_table_t **self, string name, arg_type type)
+static void push_frame(symbol_table_t **self, string name)
 {
     symbol_table_t *new_scope = init_symbol_table();
-    malloc_s(new_scope->frame_name, char, strlen(name == NULL ? "POPOVICH" : name) + 1);
+    symbol_variable_t* func = symbol_table_find(*self, name);
+    malloc_s(new_scope->frame_name, char, strlen(name) + 1);
     if (name != NULL)
         strcpy(new_scope->frame_name, name);
     new_scope->top = NULL;
-    new_scope->frame_type = type;
     new_scope->next = *self;
-    new_scope->bound = symbol_table_find(*self, name);
-    (*self)->frame = LF;
-    set_frame((*self)->top, LF);
+    new_scope->frame_type = func == NULL ? NIL : func->type;
+    new_scope->bound = func;
+    if ((*self)->next == NULL)
+    {
+        (*self)->frame = LF;
+        set_frame((*self)->top, LF);
+    }
+    else
+    {
+        (*self)->frame = TF;
+        set_frame((*self)->top, TF);
+    }
     *self = new_scope;
 }
 
@@ -209,7 +211,8 @@ static void pop_frame(symbol_table_t **self)
     {
         symbol_table_t *delete_scope = *self;
         *self = (*self)->next;
-        if (*self != NULL) {
+        if (*self != NULL)
+        {
             (*self)->frame = TF;
             set_frame((*self)->top, TF);
         }

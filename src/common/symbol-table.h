@@ -34,7 +34,7 @@ struct symbol_table_t
     symbol_table_types (*insert)(symbol_table_t *self, string var_name, string var_value, arg_type var_type, bool is_function);
     symbol_variable_t *(*find)(symbol_table_t *self, string var_name);
     arg_type (*find_g)(symbol_table_t *self, string name); //find type
-    void (*push_frame)(symbol_table_t **self, string frame_name, arg_type frame_type);
+    void (*push_frame)(symbol_table_t **self, string name);
     void (*pop_frame)(symbol_table_t **self);
     void (*free)(symbol_table_t **self);
 };

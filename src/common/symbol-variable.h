@@ -10,7 +10,7 @@ typedef enum symbol_table_types
 {
     ST_INSERT = 0,
     ST_ASSIGN,
-    ST_ERR
+    ST_ERR,
 } symbol_table_types;
 
 struct symbol_variable_t

@@ -53,7 +53,7 @@
 #define scope_func(name, type) self->symbol_table->insert(self->symbol_table, name, "0", type, true)
 #define scope_find(name) self->symbol_table->find_g(self->symbol_table, name)
 #define scope_get(name) self->symbol_table->find(self->symbol_table, name)
-#define new_scope(name, type) self->symbol_table->push_frame(&self->symbol_table, name, type);
+#define new_scope(name) self->symbol_table->push_frame(&self->symbol_table, name);
 #define end_scope self->symbol_table->pop_frame(&self->symbol_table);
 #define register_not_found(name) if (scope_find(name) == BLACKHOLE) {frame_add_line(as DEFVAR(new_arg(TF, name))); \
                                                                 scope_var(name); }
@@ -344,7 +344,7 @@ bool parseFunctionDefinition(parser_t *self)
         strcpy(function_name, token->text);
 
         if (parseFunctionHeader(self, function_name, &function_type)) {
-            new_scope(function_name, function_type);
+            new_scope(function_name);
 
             pass = token_is("{") && parseStatements(self) && token_is("}");
 
@@ -715,7 +715,7 @@ bool parseWhile(parser_t *self)
 
     if (token_is("while"))
     {
-        new_scope("while", NIL);
+        new_scope("while");
         new_code_frame;
         frame_add_line(as LABEL(label(WHILE)));
 
