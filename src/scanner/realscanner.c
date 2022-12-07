@@ -11,8 +11,7 @@
 #define init_and_push(cur_char)        \
     token_t *token = init_token();     \
     token->push_char(token, cur_char); \
-    bool token_end = false;            \
-    token_end = token_end;
+    bool token_end = false;
 #define fseek_and_token_end(current)   \
     if (current != EOF){ \
      fseek(stdin, -1, SEEK_CUR); \
@@ -123,7 +122,6 @@ token_t *scan_number(char cur_char)
         if (token->type == DOUBLE_LITERAL){
             double text;
             text = strtod(token->text,NULL);
-            printf("%a",text);
             sprintf(token->text, "%a", text);
         }
          if (current != EOF){
@@ -442,9 +440,10 @@ token_t *scan_operator(char cur_char, types_t type)
     return (token);
 }
 
-token_t *scan_string(char cur_char)
+token_t *scan_string()
 {
-    init_and_push(cur_char);
+    token_t *token = init_token();
+    bool token_end = false;
     token->type = STRING_LITERAL;
     bool slash = false;
     while (!token_end)
@@ -460,7 +459,6 @@ token_t *scan_string(char cur_char)
             }
             else
             {
-             token->push_char(token, current); 
              token_end = true;
             }
         break;
@@ -644,7 +642,7 @@ token_t *Scan(scanner_t *self)
             self->current_token = scan_comment(current_char);
             break;
         case '"':
-            self->current_token = scan_string(current_char);
+            self->current_token = scan_string();
             break;
         case '+':
             self->current_token = scan_operator(current_char, OPERATOR_PLUS);
